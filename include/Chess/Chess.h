@@ -7,7 +7,7 @@
 #include ".\Game.h"
 #include ".\Player.h"
 
-namespace Chess {
+namespace Chess_API {
     class Chess {
     private:
         Game game;                                                      // Object containing the game details such as board and game pieces
@@ -38,6 +38,9 @@ namespace Chess {
 
         // Determines if the game is currently in a check mate state - indicating the game is over
         bool is_in_check_mate();
+
+        // Displays the board to the console
+        void show_board();
     };
 }
     

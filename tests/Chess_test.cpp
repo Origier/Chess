@@ -1,4 +1,4 @@
-#include "Chess.h"
+#include "..\include\Chess\Chess.h"
 #include <iostream>
 
 using namespace std;
@@ -17,7 +17,7 @@ int main() {
 
         // If the game is in a check state then give the warning
         if (test_game.is_in_check()) {
-            cout << "You are in check!" << endl;
+            cout << test_game.get_current_player().name << " is in check!" << endl;
         }
 
         // If the game is in stalemate then end the game
@@ -28,7 +28,7 @@ int main() {
 
         // If the game is in check mate then end the game
         if (test_game.is_in_check_mate()) {
-            cout << "Check mate! You lose!" << endl;
+            cout << "Check mate! " << test_game.get_current_player().name << " wins!" << endl;
             break;
         }
     }

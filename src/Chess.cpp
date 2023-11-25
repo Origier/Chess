@@ -1,4 +1,4 @@
-#include "Chess.h"
+#include "..\include\Chess\Chess.h"
 
 namespace Chess_API {
     bool Chess::is_valid_player_input(std::pair<std::string, std::string>) {
@@ -38,7 +38,13 @@ namespace Chess_API {
     // Determines if the game is currently in a check mate state - indicating the game is over
     bool Chess::is_in_check_mate() {
         // TODO - Implement
-        return false;
+        return true;
+    }
+
+    // Returns the current player
+    Player Chess::get_current_player() {
+        // TODO - Implement
+        return current_player;
     }
 
     // Displays the board to the console

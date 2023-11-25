@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 
-#include ".\Game.h"
-#include ".\Player.h"
+#include "..\..\src\Game.h"
+#include "..\..\src\Player.h"
 
 namespace Chess_API {
     class Chess {
@@ -14,7 +14,7 @@ namespace Chess_API {
         Player player1;                                                 // Player object that would have the "white" pieces
         Player player2;                                                 // Player object that would have the "black" pieces
         std::vector<std::pair<std::string, std::string>> played_moves;  // Past moves played - allows for showing a play-by-play of how the game has gone as well as serializing the game to play later
-        bool player1_played_last = false;                               // Flag to determine if the first player went previously - determines who is next to go
+        Player& current_player = player1;                               // Reference to whomever is the current player object to take their turn
 
         // Determines if the provided input is a valid player input or not - used in conjunction with the player class to get player input
         bool is_valid_player_input(std::pair<std::string, std::string>);
@@ -38,6 +38,9 @@ namespace Chess_API {
 
         // Determines if the game is currently in a check mate state - indicating the game is over
         bool is_in_check_mate();
+
+        // Returns the current player
+        Player get_current_player();
 
         // Displays the board to the console
         void show_board();

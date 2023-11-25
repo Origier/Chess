@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm> // transform
 
 #include "..\..\src\Game.h"
 #include "..\..\src\Player.h"
@@ -15,8 +16,14 @@ namespace Chess_API {
         Player player2;                                                 // Player object that would have the "black" pieces
         std::vector<std::pair<std::string, std::string>> played_moves;  // Past moves played - allows for showing a play-by-play of how the game has gone as well as serializing the game to play later
         Player& current_player = player1;                               // Reference to whomever is the current player object to take their turn
+        const std::string valid_chars = "abcdefgh";                     // Valid characters referring to the places on the chess board
+        const std::string valid_nums = "12345678";                      // Valid numbers referring to the places on the chess board
 
-        // Determines if the provided input is a valid player input or not - used in conjunction with the player class to get player input
+        /* Determines if the provided input is a valid player input or not - used in conjunction with the player class to get player input
+        *  The correct format for player input should be a string pair, indicating the starting position and the ending postion
+        *  Examples include: {a1, b2}, {f7, e5}, {h8, a1}...
+        *  This functions determines if the correct formatting was used for the player input
+        */
         bool is_valid_player_input(std::pair<std::string, std::string>);
     public:
         // Default constructor to start a blank new game

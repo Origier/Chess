@@ -49,6 +49,6 @@ namespace Chess_API {
 
     // Displays the board to the console
     void Chess::show_board() {
-        // TODO - Implement
+        game.show_board();
     }
 }

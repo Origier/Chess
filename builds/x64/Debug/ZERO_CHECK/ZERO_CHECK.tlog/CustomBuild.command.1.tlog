@@ -1,0 +1,10 @@
+^C:\USERS\AMCDO\DESKTOP\MY STUFF\LEARN CPP\CHESS\BUILDS\CMAKEFILES\0B5AFE64908D2E7B08A3FB6962D25847\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess" "-BC:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds/Play_Chess.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

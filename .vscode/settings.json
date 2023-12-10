@@ -55,6 +55,7 @@
         "xlocnum": "cpp",
         "xloctime": "cpp",
         "algorithm": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "*.in": "cpp"
     }
 }

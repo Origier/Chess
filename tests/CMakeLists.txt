@@ -1,0 +1,1 @@
+add_library(tests Chess_test.cpp)

@@ -7,6 +7,12 @@
     <ClCompile Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\Human_Player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\Computer_Player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\CMakeLists.txt" />

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{FD5192B6-F748-3162-9D75-53D0633ADFD9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

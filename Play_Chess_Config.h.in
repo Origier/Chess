@@ -1,0 +1,7 @@
+#ifndef PLAY_CHESS_CONFIG
+#define PLAY_CHESS_CONFIG
+
+#define Play_Chess_VERSION_MAJOR @Play_Chess_VERSION_MAJOR@
+#define Play_Chess_VERSION_MINOR @Play_Chess_VERSION_MINOR@
+
+#endif

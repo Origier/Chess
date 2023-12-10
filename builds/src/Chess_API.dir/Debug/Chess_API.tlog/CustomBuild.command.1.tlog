@@ -1,0 +1,10 @@
+^C:\USERS\AMCDO\DESKTOP\MY STUFF\LEARN CPP\CHESS\SRC\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess" "-BC:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds" --check-stamp-file "C:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds/src/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

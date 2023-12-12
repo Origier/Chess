@@ -2,3 +2,4 @@ C:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds/CMakeFiles/Play_Chess.dir
 C:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds/CMakeFiles/ALL_BUILD.dir
 C:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds/CMakeFiles/ZERO_CHECK.dir
 C:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds/src/CMakeFiles/Chess_API.dir
+C:/Users/amcdo/Desktop/My Stuff/Learn CPP/Chess/builds/tests/CMakeFiles/tests_lib.dir

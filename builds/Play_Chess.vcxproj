@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -98,15 +98,15 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;RUN_TESTS;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;RUN_TESTS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -114,7 +114,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>src\Debug\Chess_API.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>src\Debug\Chess_API.lib;tests\Debug\tests_lib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -129,7 +129,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -139,17 +139,17 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RUN_TESTS;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RUN_TESTS;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -157,7 +157,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>src\Release\Chess_API.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>src\Release\Chess_API.lib;tests\Release\tests_lib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -172,7 +172,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
@@ -182,17 +182,17 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RUN_TESTS;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RUN_TESTS;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -200,7 +200,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>src\MinSizeRel\Chess_API.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>src\MinSizeRel\Chess_API.lib;tests\MinSizeRel\tests_lib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -215,7 +215,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -226,15 +226,15 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RUN_TESTS;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RUN_TESTS;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\src\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\include;C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\tests\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -242,7 +242,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>src\RelWithDebInfo\Chess_API.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>src\RelWithDebInfo\Chess_API.lib;tests\RelWithDebInfo\tests_lib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -329,6 +329,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds\src\Chess_API.vcxproj">
       <Project>{BD6BB834-342F-3A49-8888-ACC6E7FE4035}</Project>
       <Name>Chess_API</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\amcdo\Desktop\My Stuff\Learn CPP\Chess\builds\tests\tests_lib.vcxproj">
+      <Project>{6451C5E9-17F3-38DF-9380-289F4EED88FA}</Project>
+      <Name>tests_lib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

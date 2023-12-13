@@ -56,7 +56,10 @@
         "xloctime": "cpp",
         "algorithm": "cpp",
         "optional": "cpp",
-        "*.in": "cpp"
+        "*.in": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false
 }

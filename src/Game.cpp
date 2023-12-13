@@ -19,7 +19,7 @@ namespace Chess_API {
     }
 
     // Constructor that accepts a board object to build that game based on that
-    Game::Game(Board board_in) {
+    Game::Game(game_piece ** board_in) {
         // TODO - Implement
     }
 

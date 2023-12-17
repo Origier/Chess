@@ -1,5 +1,4 @@
-#include "Chess.h"
-#include <iostream>
+#include "Chess_test.h"
 
 using namespace std;
 using namespace Chess_API;

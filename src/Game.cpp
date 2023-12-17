@@ -10,7 +10,16 @@ namespace Chess_API {
 
     // Default constructor creating an empty game
     Game::Game() {
-        // TODO - Implement
+        // Building out the game board
+        game_board = new game_piece ** [DEFAULT_CHESS_BOARD_SIZE];
+
+        // Setting default values for each 'cell' on the chess board
+        for (int i = 0; i < DEFAULT_CHESS_BOARD_SIZE; ++i) {
+            game_board[i] = new game_piece * [8];
+            for (int j = 0; j < DEFAULT_CHESS_BOARD_SIZE; ++j) {
+                game_board[i][j] = nullptr;
+            }
+        }
     }
 
     // Copy constructor
@@ -18,9 +27,76 @@ namespace Chess_API {
         // TODO - Implement
     }
 
-    // Constructor that accepts a board object to build that game based on that
-    Game::Game(game_piece ** board_in) {
-        // TODO - Implement
+    // Destructor for removing all of the board allocated memory
+    Game::~Game() {
+        // Setting default values for each 'cell' on the chess board
+        for (int i = 0; i < DEFAULT_CHESS_BOARD_SIZE; ++i) {
+            for (int j = 0; j < DEFAULT_CHESS_BOARD_SIZE; ++j) {
+                // Deallocating any pieces that remain in memory
+                if (game_board[i][j] != nullptr) {
+                    remove_piece(std::make_pair(i, j));
+                }
+            }
+
+            // Deallocating this row of memory
+            delete[] game_board[i];
+        }
+
+        // Deleting the remainder of the game board
+        delete[] game_board;
+    }
+
+    // Adds the given piece type to the game board at the provided location
+    // Throws an error if attempting to place the piece outside the bounds
+    void Game::add_piece(GAME_PIECE_TYPE type_in, GAME_PIECE_COLOR color_in, std::pair<int, int> location) {
+        int x = std::get<0>(location);
+        int y = std::get<1>(location);
+
+        if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
+            throw std::runtime_error("You cannot place a piece outside the bounds of the board");
+        }
+
+        if (game_board[x][y] != nullptr) {
+            throw std::runtime_error("There is already a piece on that spot of the board");
+        }
+
+        game_board[x][y] = new game_piece(type_in, color_in);
+    }
+
+    // Returns the game_piece pointer for the provided location
+    // Throws an error if attempting to pull a location beyond the scope of the board
+    // Simply returns a nullptr if there isn't anything there
+    Game::game_piece Game::get_location(std::pair<int, int> location) {
+        int x = std::get<0>(location);
+        int y = std::get<1>(location);
+
+        if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
+            throw std::runtime_error("You cannot select outside the bounds of the board");
+        }
+
+        // Returning a copy of the game_piece for memory safety
+        if (game_board[x][y] == nullptr) {
+            return Game::game_piece();
+        }
+
+        return *game_board[x][y];
+    }
+
+    // Removes any pieces on the provided location - if there isn't a piece there then it does nothing
+    void Game::remove_piece(std::pair<int, int> location) {
+        int x = std::get<0>(location);
+        int y = std::get<1>(location);
+
+        // If attempting to remove outside the bounds then simply do nothing
+        if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
+            throw std::runtime_error("Cannot remove pieces outside the bounds of the board");
+        }
+
+        // As long as there is a piece on this position then remove it and ensure that this position is set back to a nullptr
+        if (game_board[x][y] != nullptr) {
+            delete game_board[x][y];
+            game_board[x][y] = nullptr;
+        }
     }
 
     // Plays the given move placing the game piece from start_pos to end_pos

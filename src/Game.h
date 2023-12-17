@@ -3,6 +3,9 @@
 
 #include <tuple>            // std::pair
 #include <unordered_map>    // std::unordered_map for containing the key-value pair of game piece movesets
+#include <stdexcept>
+#include "Chess_API_vars.h"
+
 
 namespace Chess_API {
     class Game {
@@ -17,22 +20,38 @@ namespace Chess_API {
 
         // Different types of game pieces for chess
         enum GAME_PIECE_TYPE {
-            PAWN,
+            PAWN = 1,
             KNIGHT,
             ROOK,
             BISHOP,
             KING,
-            QUEEN
+            QUEEN,
+            NOTYPE,  // Void value to indicate an invalid piece
+            TYPEMIN = PAWN,
+            TYPEMAX = QUEEN
+        };
+
+        enum GAME_PIECE_COLOR {
+            WHITE = 1,
+            BLACK,
+            NOCOLOR, // Void value to indicate an invalid piece
+            COLORMIN = WHITE,
+            COLORMAX = BLACK
         };
 
         // Representation of a game piece - simple mechanics to set some rules for the piece
         struct game_piece {
-            GAME_PIECE_TYPE type;
+            // Default values to indicate an invalidly defined piece
+            GAME_PIECE_TYPE type = NOTYPE;      
+            GAME_PIECE_COLOR color = NOCOLOR;
             int moves_made = 0;
             bool is_restricted;
 
+            // Default constructor to allow sending pieces that indicate an invalid piece
+            game_piece() {}
+
             // Simply put - rooks, queens and bishops have freer movemen than the other pieces
-            game_piece(GAME_PIECE_TYPE type_in) {
+            game_piece(GAME_PIECE_TYPE type_in, GAME_PIECE_COLOR color_in) : type(type_in), color(color_in) {
                 if (type_in == ROOK || type_in == QUEEN || type_in == BISHOP) {
                     is_restricted = false;
                 } else {
@@ -75,8 +94,20 @@ namespace Chess_API {
         // Copy constructor
         Game(const Game& copy);
 
-        // Constructor that accepts a board object to build that game based on that
-        Game(game_piece ** board_in);
+        // Destructor for removing all board allocated memory
+        ~Game();
+
+        // Adds the given piece type to the game board at the provided location
+        // Throws an error if attempting to place the piece outside the bounds
+        void add_piece(GAME_PIECE_TYPE type_in, GAME_PIECE_COLOR color_in, std::pair<int, int> location);
+
+        // Returns a game_piece copy for this location
+        // Throws an error if attempting to pull a location beyond the scope of the board
+        // Returns an invalid piece if there is no piece - type = NOTYPE, color = NOCOLOR
+        game_piece get_location(std::pair<int, int> location);
+
+        // Removes any pieces on the provided location - if there isn't a piece there then it does nothing
+        void remove_piece(std::pair<int, int> location);
 
         // Plays the given move placing the game piece from start_pos to end_pos
         void play_move(std::pair<int, int> start_pos, std::pair<int, int> end_pos);
@@ -91,7 +122,8 @@ namespace Chess_API {
         bool is_valid_move(std::pair<int, int> start_pos, std::pair<int, int> end_pos) const;
 
     private:
-        game_piece ** game_board = nullptr;   // The game boards - containing either pieces or nullptrs
+
+        game_piece *** game_board = nullptr;   // The game boards - containing either pieces or nullptrs
 
         GAME_STATE current_game_state = NORMAL;
    

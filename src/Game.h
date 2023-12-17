@@ -51,7 +51,7 @@ namespace Chess_API {
             game_piece() {}
 
             // Simply put - rooks, queens and bishops have freer movemen than the other pieces
-            game_piece(GAME_PIECE_TYPE type_in, GAME_PIECE_COLOR color_in) : type(type_in), color(color_in) {
+            game_piece(const GAME_PIECE_TYPE type_in, const GAME_PIECE_COLOR color_in) : type(type_in), color(color_in) {
                 if (type_in == ROOK || type_in == QUEEN || type_in == BISHOP) {
                     is_restricted = false;
                 } else {
@@ -92,34 +92,37 @@ namespace Chess_API {
         Game();
 
         // Copy constructor
-        Game(const Game& copy);
+        Game(const Game& copy_source);
 
         // Destructor for removing all board allocated memory
         ~Game();
 
+        // Assignment operator - copies the current games data rather then acting as a reference
+        Game& operator=(const Game& other);
+
         // Adds the given piece type to the game board at the provided location
         // Throws an error if attempting to place the piece outside the bounds
-        void add_piece(GAME_PIECE_TYPE type_in, GAME_PIECE_COLOR color_in, std::pair<int, int> location);
+        void add_piece(const GAME_PIECE_TYPE type_in, const GAME_PIECE_COLOR color_in, const std::pair<int, int>& location);
 
         // Returns a game_piece copy for this location
         // Throws an error if attempting to pull a location beyond the scope of the board
         // Returns an invalid piece if there is no piece - type = NOTYPE, color = NOCOLOR
-        game_piece get_location(std::pair<int, int> location);
+        game_piece get_location(const std::pair<int, int>& location) const;
 
         // Removes any pieces on the provided location - if there isn't a piece there then it does nothing
-        void remove_piece(std::pair<int, int> location);
+        void remove_piece(const std::pair<int, int>& location);
 
         // Plays the given move placing the game piece from start_pos to end_pos
-        void play_move(std::pair<int, int> start_pos, std::pair<int, int> end_pos);
+        void play_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos);
 
         // Returns the current state of the game
         GAME_STATE get_current_game_state() const;
 
-        // Shows the current state of the game board
+        // Prints the game board to std::cout in a friendly manner
         void show_board() const;
 
         // Determines if the provided starting and ending position are valid moves based on Chess ruling
-        bool is_valid_move(std::pair<int, int> start_pos, std::pair<int, int> end_pos) const;
+        bool is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
 
     private:
 

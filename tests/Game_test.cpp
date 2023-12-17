@@ -546,6 +546,338 @@ bool test_removing_invalid_locations() {
     return true;
 }
 
+// Tests the assignment operator for deep copying the game object
+bool test_assignment_operator() {
+    int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
+    int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
+
+    // Casting a random piece type and color
+    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
+    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+
+    Game new_game;
+
+    new_game.add_piece(type, color, make_pair(x, y));
+
+    Game copy_game = new_game;
+
+    Game::game_piece piece = copy_game.get_location(make_pair(x, y));
+
+    // The piece should have persisted to the copy
+    if (piece.color == color && piece.type == type) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// Tests the removal of a copied piece from the copy game - ensures persistence on the original
+bool test_assignment_operator_piece_removal() {
+    int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
+    int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
+
+    // Casting a random piece type and color
+    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
+    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+
+    Game new_game;
+
+    new_game.add_piece(type, color, make_pair(x, y));
+
+    Game copy_game = new_game;
+
+    // Removing copied piece
+    copy_game.remove_piece(make_pair(x, y));
+
+    Game::game_piece piece = new_game.get_location(make_pair(x, y));
+
+    if (piece.color == color && piece.type == type) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// Tests the copy constructor to ensure deep coping inside of functions
+bool test_copy_constructor() {
+    int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
+    int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
+
+    // Casting a random piece type and color
+    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
+    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+
+    Game new_game;
+
+    new_game.add_piece(type, color, make_pair(x, y));
+
+    // Helper function to copy over the game data and determine if it is a deep copy or not
+    auto helper_func = [type, color, x, y](Game game_copy) {
+        Game::game_piece piece = game_copy.get_location(make_pair(x, y));
+
+        if (piece.color == color && piece.type == type) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    if (helper_func(new_game)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// Tests removal of a piece from a copied version - ensures persistence on the original
+bool test_copy_constructor_removal() {
+    int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
+    int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
+
+    // Casting a random piece type and color
+    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
+    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+
+    Game new_game;
+
+    new_game.add_piece(type, color, make_pair(x, y));
+
+    // Helper function to copy over the game data
+    auto helper_func = [type, color, x, y](Game game_copy) {
+        game_copy.remove_piece(make_pair(x, y));
+
+        Game::game_piece piece = game_copy.get_location(make_pair(x, y));
+
+        // Ensuring the copies has been deleted
+        if (piece.color == Game::GAME_PIECE_COLOR::NOCOLOR && piece.type == Game::GAME_PIECE_TYPE::NOTYPE) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    if (helper_func(new_game)) {
+        Game::game_piece piece = new_game.get_location(make_pair(x, y));
+        // Ensuring persistence in the original copy
+        if (piece.color == color && piece.type == type) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+// Tests that is_valid_move returns false if there is no starting piece
+bool test_is_valid_move_start_piece() {
+    int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
+    int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
+
+    Game new_game;
+
+    if (new_game.is_valid_move(make_pair(x, y), make_pair(x, y))) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+// Tests that is_valid_move returns false if there is a piece on the end position of the same color
+bool test_is_valid_move_end_piece() {
+    int x_start = rand() % DEFAULT_CHESS_BOARD_SIZE;
+    int y_start = rand() % DEFAULT_CHESS_BOARD_SIZE;
+
+    int x_end = rand() % DEFAULT_CHESS_BOARD_SIZE;
+    int y_end = rand() % DEFAULT_CHESS_BOARD_SIZE;
+
+    // Casting a random piece type and color
+    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
+    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+
+    Game new_game;
+
+    new_game.add_piece(type, color, make_pair(x_start, y_start));
+    new_game.add_piece(type, color, make_pair(x_end, y_end));
+
+    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end, y_end))) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+// Tests valid moves for a Queen - the queen acts as a valid test for all unrestricted pieces
+bool test_is_valid_moves_queen() {
+    // Hardcoded for discrete testing purposes
+    int x_start = 4;
+    int y_start = 4;
+    
+    // Moving one space diagonally
+    int x_end1 = 5;
+    int y_end1 = 5;
+
+    int x_end2 = 3;
+    int y_end2 = 5;
+
+    int x_end3 = 5;
+    int y_end3 = 3;
+    
+    int x_end4 = 3;
+    int y_end4 = 3;
+
+    // Moving one space vertically
+    int x_end5 = 5;
+    int y_end5 = 4;
+
+    int x_end6 = 3;
+    int y_end6 = 4;
+    
+    // Moving one space horizontally
+    int x_end7 = 4;
+    int y_end7 = 5;
+
+    int x_end8 = 4;
+    int y_end8 = 3;
+
+    // Moving many spaces diagonally
+    int x_end9 = 7;
+    int y_end9 = 7;
+
+    int x_end10 = 1;
+    int y_end10 = 7;
+
+    int x_end11 = 7;
+    int y_end11 = 1;
+    
+    int x_end12 = 1;
+    int y_end12 = 1;
+
+    // Moving many spaces vertically
+    int x_end13 = 7;
+    int y_end13 = 4;
+
+    int x_end14 = 1;
+    int y_end14 = 4;
+
+    // Moving many spaces horizontally
+    int x_end15 = 4;
+    int y_end15 = 7;
+
+    int x_end16 = 4;
+    int y_end16 = 1;
+
+    Game new_game;
+
+    new_game.add_piece(Game::GAME_PIECE_TYPE::QUEEN, Game::GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end4, y_end4))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end5, y_end5))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end6, y_end6))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end7, y_end7))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end8, y_end8))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end9, y_end9))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end10, y_end10))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end11, y_end11))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end12, y_end12))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end13, y_end13))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end14, y_end14))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end15, y_end15))) {
+        return false;
+    }
+
+    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end16, y_end16))) {
+        return false;
+    }
+
+    // After testing each hardcoded positions - return true if all passed
+    return true;
+}
+
+// Tests invalid moves for a Queen - the queen acts as a valid test for all unrestricted pieces
+bool test_is_invalid_moves_queen() {
+    // Hardcoded for discrete testing purposes
+    int x_start = 0;
+    int y_start = 0;
+    
+    // Moving one space higher than diagonal
+    int x_end1 = 6;
+    int y_end1 = 5;
+
+    // Moving very far horizontal with slight vertical
+    int x_end2 = 1;
+    int y_end2 = 7;
+
+    // Move like a knight
+    int x_end3 = 2;
+    int y_end3 = 1;
+    
+    Game new_game;
+
+    new_game.add_piece(Game::GAME_PIECE_TYPE::QUEEN, Game::GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
+
+    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
+        return false;
+    }
+
+    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
+        return false;
+    }
+
+    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
+        return false;
+    }
+
+    // After testing each hardcoded positions - return true if all passed
+    return true;
+}
+
+
 // Executes all of the unit tests for the Chess object - if any fail it will return an integer to describe the number that failed
 int run_game_tests() {
     int errors = 0;
@@ -692,6 +1024,102 @@ int run_game_tests() {
         }
     } catch(...) {
         cout << "   ERROR: Something unknown went wrong when attempting to test removal of invalid locations" << endl;
+        ++errors;
+    }
+
+
+    // Testing the assignment operator to ensure deep copying
+    try {
+        if (!test_assignment_operator() ) {
+            cout << "   ERROR: The game assignment operator did not assign deep data" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to use the assignment operator" << endl;
+        ++errors;
+    }
+
+
+    // Testing the assignment operator to ensure separate data - removal on one copy does not effect the original
+    try {
+        if (!test_assignment_operator_piece_removal()) {
+            cout << "   ERROR: The game assignment operator does not separate the data" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to test the assignment operator data integrity" << endl;
+        ++errors;
+    }
+
+
+    // Testing the copy constructor to ensure deep copying
+    try {
+        if (!test_copy_constructor()) {
+            cout << "   ERROR: The game copy constructor does not perform a deep copy correctly" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to use the copy constructor" << endl;
+        ++errors;
+    }
+
+
+    // Testing the copy constructor to ensure separation of data
+    try {
+        if (!test_copy_constructor_removal()) {
+            cout << "   ERROR: The game copy constructor does not partion separate memory for game copies" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to test the copy constructor for data integrity" << endl;
+        ++errors;
+    }
+
+
+    // Testing is_valid_move for starting piece required
+    try {
+        if (!test_is_valid_move_start_piece()) {
+            cout << "   ERROR: The game does not require a starting piece for a move to be valid" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to test the requirement for a starting piece" << endl;
+        ++errors;
+    }
+
+
+    // Testing is_valid_move for ending piece being not the same color
+    try {
+        if (!test_is_valid_move_end_piece()) {
+            cout << "   ERROR: The game does not require an ending piece to be a different color for a valid move" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to test the requirement for an ending piece" << endl;
+        ++errors;
+    }
+
+
+    // Testing is_valid_move for valid queen moves
+    try {
+        if (!test_is_valid_moves_queen()) {
+            cout << "   ERROR: The game does not correctly register correct moves for the queen" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to test the valid moves for a queen" << endl;
+        ++errors;
+    }
+
+
+    // Testing is_valid_move for invalid queen moves
+    try {
+        if (!test_is_invalid_moves_queen()) {
+            cout << "   ERROR: The game does not correctly register incorrect moves for the queen" << endl;
+            ++errors;
+        }
+    } catch(...) {
+        cout << "   ERROR: Something unknown went wrong when attempting to test the invalid moves for a queen" << endl;
         ++errors;
     }
 

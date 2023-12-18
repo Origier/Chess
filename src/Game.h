@@ -18,8 +18,6 @@ namespace Chess_API {
             CHECKMATE
         };
 
-        
-
         // The constantly defined movesets for each piece based on the ruling of chess
         // Each moveset is a normalized move - meaning that it is an x,y directional move rather than the limits of their move
         // Based on the struct definition - if the piece is restricted then it may only move by its moveset
@@ -86,9 +84,11 @@ namespace Chess_API {
 
     private:
 
-        game_piece *** game_board = nullptr;   // The game boards - containing either pieces or nullptrs
+        game_piece *** game_board = nullptr;                                // The game boards - containing either pieces or nullptrs
 
-        GAME_STATE current_game_state = NORMAL;
+        GAME_STATE current_game_state = NORMAL;                             // Tracks the games state - read only from API and used to determine the play state of the game
+
+        std::pair<int, int> en_passant_position = std::make_pair(-1, -1);   // Tracks the position for the next available en passant move, updates every move played, defaults to negative values when there isn't a valid en passant move
    
     };
     

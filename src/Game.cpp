@@ -130,8 +130,58 @@ namespace Chess_API {
     }
 
     // Plays the given move placing the game piece from start_pos to end_pos
+    // Assumes that the move has been validated by is_valid_move - this function only validates that the move is within the bounds of the board
     void Game::play_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) {
-        // TODO - Implement
+        int start_x = std::get<0>(start_pos);
+        int start_y = std::get<1>(start_pos);
+        int end_x = std::get<0>(end_pos);
+        int end_y = std::get<1>(end_pos);
+
+        // Validate all of the positions to avoid access violations
+        if (start_x >= DEFAULT_CHESS_BOARD_SIZE || start_x < 0) {
+            throw std::runtime_error("You may not move a piece outside the bounds of the board");
+        }
+
+        if (start_y >= DEFAULT_CHESS_BOARD_SIZE || start_y < 0) {
+            throw std::runtime_error("You may not move a piece outside the bounds of the board");
+        }
+
+        if (end_x >= DEFAULT_CHESS_BOARD_SIZE || end_x < 0) {
+            throw std::runtime_error("You may not move a piece outside the bounds of the board");
+        }
+
+        if (end_y >= DEFAULT_CHESS_BOARD_SIZE || end_y < 0) {
+            throw std::runtime_error("You may not move a piece outside the bounds of the board");
+        }
+
+        game_piece * start_piece_ptr = game_board[start_x][start_y];
+        game_piece * end_piece_ptr = game_board[end_x][end_y];
+
+        // If the end spot is an empty location - simply transfer ownership of the memory from one position to the other
+        // Otherwise first deallocate the memory for the end location
+        if (end_piece_ptr != nullptr) {
+            delete game_board[end_x][end_y];
+        }
+
+        game_board[end_x][end_y] = start_piece_ptr;
+        game_board[start_x][start_y] = nullptr;
+
+        // Considerations for pawns - if a pawn moved 2 vertically, then the position behind it becomes a en passant valid position
+        if (start_piece_ptr->type == GAME_PIECE_TYPE::PAWN) {
+            int delta_x = end_x - start_x;
+
+            // Setting the en passant position accordingly - one space behind where the pawn went
+            if (abs(delta_x) == 2) {
+                int en_passant_x_negation = delta_x < 0 ? 1 : -1;
+                en_passant_position = std::make_pair(start_x - en_passant_x_negation, start_y);
+            } else {
+                en_passant_position = std::make_pair(-1, -1);
+            }
+
+        // Otherwise the en passant position become invalid
+        } else {
+            en_passant_position = std::make_pair(-1, -1);
+        }
     }
 
     // Returns the current state of the game
@@ -192,14 +242,125 @@ namespace Chess_API {
 
         // Finally - determine if the movement is within the moveset
         std::pair<int, int> delta_pair = std::make_pair(delta_x, delta_y);
-        auto move_found = std::find(moveset.cbegin(), moveset.cend(), delta_pair);
-        if (move_found != moveset.cend()) {
-            return true;
+
+        // Pawns have very special ruling
+        if (starting_piece.type == GAME_PIECE_TYPE::PAWN) {
+            // Pawns may only move in a set x-direction, therefore change the moveset for the pawn accordingly
+            if (!starting_piece.pawn_move_positive_x) {
+                // Flip all of the x-type moves to be negative before determining if the move is valid
+                for (int i = 0; i < moveset.size(); ++i) {
+                    moveset[i] = std::make_pair(std::get<0>(moveset[i]) * -1, std::get<1>(moveset[i]));
+                }
+            }
+
+            // Based on any changes to moveset - now determine if the move is within the set
+            auto move_found = std::find(moveset.cbegin(), moveset.cend(), delta_pair);
+            if (move_found == moveset.cend()) {
+                return false;
+            }
+
+            // Now that the move is validated - we must further consider if the move is the double move
+            if (abs(std::get<0>(delta_pair)) == 2) {
+                // As long as this is the pawns first move then this is valid
+                if (starting_piece.moves_made == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            // Further consider if this is an en passant move or a diagonal capture
+            if (abs(std::get<0>(delta_pair)) / abs(std::get<1>(delta_pair)) == 1) {
+                // First consider if this is a normal capture - the capture piece must be of a different color but not an invalid color
+                if (ending_piece.color != starting_piece.color && ending_piece.color != GAME_PIECE_COLOR::NOCOLOR) {
+                    return true;
+                
+                // Otherwise consider if this is an en passant move
+                } else {
+                    // Compares the end position to the current valid en passant position that is determined every call of play_move
+                    if (end_pos == en_passant_position) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+            // If it is not a diagonal move then it is valid
+            } else {
+                return true;
+            }
+
+        // The king is mostly normal except when castling
+        } else if (starting_piece.type == GAME_PIECE_TYPE::KING) {
+            // Firstly determine if the move is within the moveset
+            auto move_found = std::find(moveset.cbegin(), moveset.cend(), delta_pair);
+            if (move_found == moveset.cend()) {
+                return false;
+            }
+
+            // Determine if the move is attempting to castle
+            if (abs(std::get<1>(delta_pair)) == 2) {
+                // Determine if the king has moved
+                if (starting_piece.moves_made != 0) {
+                    return false;
+                }
+
+                // Select the respective rook to ensure it also hasn't moved
+                game_piece castle_rook;
+                if (std::get<1>(delta_pair) < 0) {
+                    castle_rook = get_location(std::make_pair(std::get<0>(delta_pair), 0));
+                } else {
+                    castle_rook = get_location(std::make_pair(std::get<0>(delta_pair), 7));
+                }
+
+                if (castle_rook.moves_made != 0) {
+                    return false;
+                }
+
+                // Ensure that the game state is not currently in check
+                if (current_game_state == GAME_STATE::CHECK) {
+                    return false;
+                }
+
+                // Ensure the path between the rook and king is clear
+                int x = std::get<0>(start_pos);
+                int y = std::get<1>(start_pos);
+                int end_y = std::get<1>(delta_pair) / -1 == 1 ? 0 : 7;
+                if (end_y > y) {
+                    ++y;
+                } else {
+                    --y;
+                }
+                while (y != end_y) {
+                    game_piece piece = get_location(std::make_pair(x, y));
+
+                    // At any point if there is a valid piece - return false
+                    if (piece.color != GAME_PIECE_COLOR::NOCOLOR || piece.type != GAME_PIECE_TYPE::NOTYPE) {
+                        return false;
+                    }
+                    
+                    if (end_y > y) {
+                        ++y;
+                    } else {
+                        --y;
+                    }
+                }
+
+                // TODO: Finally ensure that no position along the path would place the king in check
+            
+            // If it isn't a castle attempt then the move is valid
+            } else {
+                return true;
+            }
+
+
         } else {
-            return false;
+            auto move_found = std::find(moveset.cbegin(), moveset.cend(), delta_pair);
+            if (move_found != moveset.cend()) {
+                return true;
+            } else {
+                return false;
+            }
         }
-
-
-        // TODO: Consider special moves as well such as en passant, castling, pawn double move and pawn angular capture
     }
 }

@@ -46,8 +46,10 @@ namespace Chess_API {
         // Default values to indicate an invalidly defined piece
         GAME_PIECE_TYPE type = NOTYPE;      
         GAME_PIECE_COLOR color = NOCOLOR;
-        int moves_made = 0;
-        bool is_restricted;
+
+        int moves_made = 0;         // The number of moves the piece has made - useful for special moves
+        bool is_restricted;         // Determines if the piece is limited to just the predefined movesets
+        bool pawn_move_positive_x;  // If the piece is a pawn - determines which x-direction the piece is allowed to move in (positive / negative)
 
         // Default constructor to allow sending pieces that indicate an invalid piece
         game_piece() {}
@@ -59,6 +61,8 @@ namespace Chess_API {
             } else {
                 is_restricted = true;
             }
+            // Default value to avoid errors in case this is used
+            pawn_move_positive_x = false;
         }
     };
 

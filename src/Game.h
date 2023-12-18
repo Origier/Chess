@@ -88,6 +88,9 @@ namespace Chess_API {
         bool is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
 
     private:
+        // validates that the position is a valid position on the board
+        bool validate_position(const std::pair<int, int>& position) const;
+
         // Determines if the game is currently in check
         bool is_in_check();
 

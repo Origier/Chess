@@ -82,7 +82,7 @@ namespace Chess_API {
         int x = std::get<0>(location);
         int y = std::get<1>(location);
 
-        if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
+        if (!validate_position(location)) {
             throw std::runtime_error("You cannot place a piece outside the bounds of the board");
         }
 
@@ -100,7 +100,7 @@ namespace Chess_API {
         int x = std::get<0>(location);
         int y = std::get<1>(location);
 
-        if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
+        if (!validate_position(location)) {
             throw std::runtime_error("You cannot select outside the bounds of the board");
         }
 
@@ -118,7 +118,7 @@ namespace Chess_API {
         int y = std::get<1>(location);
 
         // If attempting to remove outside the bounds then simply do nothing
-        if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
+        if (!validate_position(location)) {
             throw std::runtime_error("Cannot remove pieces outside the bounds of the board");
         }
 
@@ -138,19 +138,11 @@ namespace Chess_API {
         int end_y = std::get<1>(end_pos);
 
         // Validate all of the positions to avoid access violations
-        if (start_x >= DEFAULT_CHESS_BOARD_SIZE || start_x < 0) {
+        if (!validate_position(start_pos)) {
             throw std::runtime_error("You may not move a piece outside the bounds of the board");
         }
 
-        if (start_y >= DEFAULT_CHESS_BOARD_SIZE || start_y < 0) {
-            throw std::runtime_error("You may not move a piece outside the bounds of the board");
-        }
-
-        if (end_x >= DEFAULT_CHESS_BOARD_SIZE || end_x < 0) {
-            throw std::runtime_error("You may not move a piece outside the bounds of the board");
-        }
-
-        if (end_y >= DEFAULT_CHESS_BOARD_SIZE || end_y < 0) {
+        if (!validate_position(end_pos)) {
             throw std::runtime_error("You may not move a piece outside the bounds of the board");
         }
 
@@ -212,6 +204,19 @@ namespace Chess_API {
     // Prints the game board to std::cout in a friendly manner
     void Game::show_board() const {
         // TODO - Implement
+    }
+
+    // validates that the position is a valid position on the board
+    bool Game::validate_position(const std::pair<int, int>& position) const {
+        int x = std::get<0>(position);
+        int y = std::get<1>(position);
+
+        // If attempting to remove outside the bounds then simply do nothing
+        if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     // Determines if the provided starting and ending position are valid moves based on Chess ruling
@@ -305,9 +310,13 @@ namespace Chess_API {
                     }
                 }
 
-            // If it is not a diagonal move then it is valid
+            // If it is not a diagonal move then it must be an empty spot otherwise it is an invalid move
             } else {
-                return true;
+                if (ending_piece.color != GAME_PIECE_COLOR::NOCOLOR || ending_piece.type != GAME_PIECE_TYPE::NOTYPE) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
 
         // The king is mostly normal except when castling

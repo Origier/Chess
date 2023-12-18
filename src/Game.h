@@ -94,6 +94,21 @@ namespace Chess_API {
         // validates that the position is a valid position on the board
         bool validate_position(const std::pair<int, int>& position) const;
 
+        // Validates if the given piece can move described by move
+        bool validate_piece_move_restricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move) const;
+
+        // Validates if the given piece can move described by move - for unrestricted pieces (ensures the path is clear for the piece)
+        bool validate_piece_move_unrestricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move, const std::pair<int, int>& start_pos, const std::pair<int, int> end_pos) const;
+
+        // Determines is baseline delta move for the piece, finding the root move direction for unrestricted pieces
+        std::pair<int, int> calculate_piece_delta_move(const game_piece& piece, const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
+
+        // Validates that the move is an acceptable move for a pawn given the current state of the board - no consideration for checks
+        bool validate_pawn_move(const game_piece& starting_piece, const game_piece& ending_piece, const std::pair<int, int>& move, const std::pair<int, int>& end_pos) const;
+
+        // Validates that the move is an acceptable move for a king given the current state of the board - no consideration for checks
+        bool validate_king_move(const game_piece& starting_piece, const std::pair<int, int> move, const std::pair<int, int>& start_pos) const;
+
         // Determines if the game is currently in check
         bool is_in_check();
 

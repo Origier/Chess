@@ -228,6 +228,190 @@ namespace Chess_API {
         }
     }
 
+    // Validates if the given piece can move described by move - for restricted pieces
+    bool Game::validate_piece_move_restricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move) const {
+        std::vector<std::pair<int, int>> moveset = PIECE_MOVESETS.at(type);
+
+        auto move_found = std::find(moveset.cbegin(), moveset.cend(), move);
+
+        return move_found != moveset.cend();
+    }
+
+    // Validates if the given piece can move described by move - for unrestricted pieces (ensures the path is clear for the piece)
+    bool Game::validate_piece_move_unrestricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move, const std::pair<int, int>& start_pos, const std::pair<int, int> end_pos) const {
+        // First ensure the move is within the moveset
+        if (!validate_piece_move_restricted(type, move)) {
+            return false;
+        }
+
+        // Next - map out the path from the start pos to the end pos ensuring there are no pieces in the way
+        int x_start = std::get<0>(start_pos) + std::get<0>(move);
+        int y_start = std::get<1>(start_pos) + std::get<1>(move);
+
+        int x_end = std::get<0>(end_pos);
+        int y_end = std::get<1>(end_pos);
+
+        // If there are any valid pieces along the path then return false
+        while (x_start != x_end && y_start != y_end) {
+            game_piece piece = get_location(std::make_pair(x_start, y_start));
+
+            if (validate_game_piece(piece)) {
+                return false;
+            }
+
+            x_start += std::get<0>(move);
+            y_start += std::get<1>(move);
+        }
+        
+        // If we make it here then the path should be clear
+        return true;
+    }
+
+    // Determines is baseline delta move for the piece, finding the root move direction for unrestricted pieces
+    std::pair<int, int> Game::calculate_piece_delta_move(const game_piece& piece, const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
+        // Calculate the overall move
+        int delta_x = std::get<0>(start_pos) - std::get<0>(end_pos);
+        int delta_y = std::get<1>(start_pos) - std::get<1>(end_pos);
+
+        // For unrestricted pieces - we must first calculate the rise over run to 'normalize' the movement
+        if (!piece.is_restricted) {
+            // Ensuring no division by 0
+            if (delta_y == 0) {
+                // If no change in y then delta_x is just divided by its own absolute value
+                delta_x = delta_x / abs(delta_x);
+            } else {
+                float rise_over_run = (static_cast<float>(delta_x) / static_cast<float>(delta_y));
+                // We know that rise_over_run should be a whole number for any of the unrestricted pieces
+                // If it is not then change the delta_x to something that will never match a move
+                int big_num = rise_over_run * 1000;
+                big_num = big_num / 1000;
+                
+                delta_x = ceil(rise_over_run);
+                
+                if (delta_x != big_num) {
+                    delta_x = 1000;
+                } else {
+                    delta_y = 1;
+                }
+            }
+        }
+
+        return std::make_pair(delta_x, delta_y);
+    } 
+
+    // Validates that the move is an acceptable move for a pawn given the current state of the board - no consideration for checks
+    bool Game::validate_pawn_move(const game_piece& starting_piece, const game_piece& ending_piece, const std::pair<int, int>& move, const std::pair<int, int>& end_pos) const {
+        std::vector<std::pair<int, int>> moveset = PIECE_MOVESETS.at(GAME_PIECE_TYPE::PAWN);
+        // Pawns may only move in a set x-direction, therefore change the moveset for the pawn accordingly
+        if (!starting_piece.pawn_move_positive_x) {
+            // Flip all of the x-type moves to be negative before determining if the move is valid
+            for (int i = 0; i < moveset.size(); ++i) {
+                moveset[i] = std::make_pair(std::get<0>(moveset[i]) * -1, std::get<1>(moveset[i]));
+            }
+        }
+
+        // Based on any changes to moveset - now determine if the move is within the set
+        auto move_found = std::find(moveset.cbegin(), moveset.cend(), move);
+        if (move_found == moveset.cend()) {
+            return false;
+        }
+
+        // Now that the move is validated - we must further consider if the move is the double move
+        if (abs(std::get<0>(move)) == 2) {
+            // As long as this is the pawns first move then this is valid
+            if (starting_piece.moves_made == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        // Further consider if this is an en passant move or a diagonal capture
+        if (abs(std::get<0>(move)) / abs(std::get<1>(move)) == 1) {
+            // First consider if this is a normal capture - the capture piece must be of a different color but not an invalid color
+            if (ending_piece.color != starting_piece.color && ending_piece.color != GAME_PIECE_COLOR::NOCOLOR) {
+                return true;
+            
+            // Otherwise consider if this is an en passant move
+            } else {
+                // Compares the end position to the current valid en passant position that is determined every call of play_move
+                if (end_pos == en_passant_position) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+        // If it is not a diagonal move then it must be an empty spot otherwise it is an invalid move
+        } else {
+            if (ending_piece.color != GAME_PIECE_COLOR::NOCOLOR || ending_piece.type != GAME_PIECE_TYPE::NOTYPE) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    // Validates that the move is an acceptable move for a king given the current state of the board - no consideration for checks
+    bool Game::validate_king_move(const game_piece& starting_piece, const std::pair<int, int> move, const std::pair<int, int>& start_pos) const {
+        // First determine if the move is valid in the set
+        if (!validate_piece_move_restricted(GAME_PIECE_TYPE::KING, move)) {
+            return false;
+        }
+
+        // Determine if the move is attempting to castle
+        if (abs(std::get<1>(move)) == 2) {
+            // Determine if the king has moved
+            if (starting_piece.moves_made != 0) {
+                return false;
+            }
+
+            // Select the respective rook to ensure it also hasn't moved
+            game_piece castle_rook;
+            if (std::get<1>(move) < 0) {
+                castle_rook = get_location(std::make_pair(std::get<0>(move), 0));
+            } else {
+                castle_rook = get_location(std::make_pair(std::get<0>(move), 7));
+            }
+
+            if (castle_rook.moves_made != 0) {
+                return false;
+            }
+
+            // Ensure that the game state is not currently in check
+            if (current_game_state == GAME_STATE::CHECK) {
+                return false;
+            }
+
+            // Ensure the path between the rook and king is clear
+            int x = std::get<0>(start_pos);
+            int y = std::get<1>(start_pos);
+            int end_y = std::get<1>(move) < 0 ? 0 : 7;
+            if (end_y > y) {
+                ++y;
+            } else {
+                --y;
+            }
+            while (y != end_y) {
+                game_piece piece = get_location(std::make_pair(x, y));
+
+                // At any point if there is a valid piece - return false
+                if (validate_game_piece(piece)) {
+                    return false;
+                }
+                
+                if (end_y > y) {
+                    ++y;
+                } else {
+                    --y;
+                }
+            }
+        // If it isn't a castle attempt then the move is valid
+        } else {
+            return true;
+        }
+    }
+
     // Determines if the provided starting and ending position are valid moves based on Chess ruling
     bool Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
         // First - validate that the moves are within the bounds of the board
@@ -253,157 +437,28 @@ namespace Chess_API {
             return false;
         } 
 
-        // Next - get the moveset for the specific piece and determine if the given move is within the pieces moveset
-        std::vector<std::pair<int, int>> moveset = PIECE_MOVESETS.at(starting_piece.type);
+        // Determine the baseline movement - unrestricted pieces will have the movement become base 1
+        std::pair<int, int> delta_pair = calculate_piece_delta_move(starting_piece, start_pos, end_pos);
 
-        int delta_x = std::get<0>(start_pos) - std::get<0>(end_pos);
-        int delta_y = std::get<1>(start_pos) - std::get<1>(end_pos);
-
-        // For unrestricted pieces - we must first calculate the rise over run to 'normalize' the movement
-        if (!starting_piece.is_restricted) {
-            // Ensuring no division by 0
-            if (delta_y == 0) {
-                // If no change in y then delta_x is just divided by its own absolute value
-                delta_x = delta_x / abs(delta_x);
-            } else {
-                float rise_over_run = (static_cast<float>(delta_x) / static_cast<float>(delta_y));
-                // We know that rise_over_run should be a whole number for any of the unrestricted pieces - if it is not then return false
-                int big_num = rise_over_run * 1000;
-                big_num = big_num / 1000;
-                
-                delta_x = ceil(rise_over_run);
-                
-                if (delta_x != big_num) {
-                    return false;
-                } else {
-                    delta_y = 1;
-                }
-            }
-        }
-
-        // Finally - determine if the movement is within the moveset
-        std::pair<int, int> delta_pair = std::make_pair(delta_x, delta_y);
-
-        // Pawns have very special ruling
+        // Determine if the delta_pair is a valid move for each piece given the game board
+        // Pawns have special ruling on how they move
         if (starting_piece.type == GAME_PIECE_TYPE::PAWN) {
-            // Pawns may only move in a set x-direction, therefore change the moveset for the pawn accordingly
-            if (!starting_piece.pawn_move_positive_x) {
-                // Flip all of the x-type moves to be negative before determining if the move is valid
-                for (int i = 0; i < moveset.size(); ++i) {
-                    moveset[i] = std::make_pair(std::get<0>(moveset[i]) * -1, std::get<1>(moveset[i]));
-                }
-            }
-
-            // Based on any changes to moveset - now determine if the move is within the set
-            auto move_found = std::find(moveset.cbegin(), moveset.cend(), delta_pair);
-            if (move_found == moveset.cend()) {
+            if (!validate_pawn_move(starting_piece, ending_piece, delta_pair, end_pos)) {
                 return false;
             }
 
-            // Now that the move is validated - we must further consider if the move is the double move
-            if (abs(std::get<0>(delta_pair)) == 2) {
-                // As long as this is the pawns first move then this is valid
-                if (starting_piece.moves_made == 0) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
-            // Further consider if this is an en passant move or a diagonal capture
-            if (abs(std::get<0>(delta_pair)) / abs(std::get<1>(delta_pair)) == 1) {
-                // First consider if this is a normal capture - the capture piece must be of a different color but not an invalid color
-                if (ending_piece.color != starting_piece.color && ending_piece.color != GAME_PIECE_COLOR::NOCOLOR) {
-                    return true;
-                
-                // Otherwise consider if this is an en passant move
-                } else {
-                    // Compares the end position to the current valid en passant position that is determined every call of play_move
-                    if (end_pos == en_passant_position) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-
-            // If it is not a diagonal move then it must be an empty spot otherwise it is an invalid move
-            } else {
-                if (ending_piece.color != GAME_PIECE_COLOR::NOCOLOR || ending_piece.type != GAME_PIECE_TYPE::NOTYPE) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-
-        // The king is mostly normal except when castling
+        // Special consideration should also be taken for kings for castling
         } else if (starting_piece.type == GAME_PIECE_TYPE::KING) {
-            // Firstly determine if the move is within the moveset
-            auto move_found = std::find(moveset.cbegin(), moveset.cend(), delta_pair);
-            if (move_found == moveset.cend()) {
+            if (!validate_king_move(starting_piece, delta_pair, start_pos)) {
                 return false;
             }
 
-            // Determine if the move is attempting to castle
-            if (abs(std::get<1>(delta_pair)) == 2) {
-                // Determine if the king has moved
-                if (starting_piece.moves_made != 0) {
-                    return false;
-                }
-
-                // Select the respective rook to ensure it also hasn't moved
-                game_piece castle_rook;
-                if (std::get<1>(delta_pair) < 0) {
-                    castle_rook = get_location(std::make_pair(std::get<0>(delta_pair), 0));
-                } else {
-                    castle_rook = get_location(std::make_pair(std::get<0>(delta_pair), 7));
-                }
-
-                if (castle_rook.moves_made != 0) {
-                    return false;
-                }
-
-                // Ensure that the game state is not currently in check
-                if (current_game_state == GAME_STATE::CHECK) {
-                    return false;
-                }
-
-                // Ensure the path between the rook and king is clear
-                int x = std::get<0>(start_pos);
-                int y = std::get<1>(start_pos);
-                int end_y = std::get<1>(delta_pair) / -1 == 1 ? 0 : 7;
-                if (end_y > y) {
-                    ++y;
-                } else {
-                    --y;
-                }
-                while (y != end_y) {
-                    game_piece piece = get_location(std::make_pair(x, y));
-
-                    // At any point if there is a valid piece - return false
-                    if (piece.color != GAME_PIECE_COLOR::NOCOLOR || piece.type != GAME_PIECE_TYPE::NOTYPE) {
-                        return false;
-                    }
-                    
-                    if (end_y > y) {
-                        ++y;
-                    } else {
-                        --y;
-                    }
-                }
-
-                // TODO: Finally ensure that no position along the path would place the king in check
-            
-            // If it isn't a castle attempt then the move is valid
-            } else {
-                return true;
-            }
-
-
+        // For unrestricted pieces - there must be a clear path to the end_pos
+        } else if (!starting_piece.is_restricted) {
+        
+        // Lastly for unrestricted pieces its a simple look-up
         } else {
-            auto move_found = std::find(moveset.cbegin(), moveset.cend(), delta_pair);
-            if (move_found != moveset.cend()) {
-                return true;
-            } else {
+            if (!validate_piece_move_restricted(starting_piece.type, delta_pair)) {
                 return false;
             }
         }

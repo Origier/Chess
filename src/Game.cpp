@@ -206,7 +206,7 @@ namespace Chess_API {
         // TODO - Implement
     }
 
-    // validates that the position is a valid position on the board
+    // Validates that the position is a valid position on the board
     bool Game::validate_position(const std::pair<int, int>& position) const {
         int x = std::get<0>(position);
         int y = std::get<1>(position);
@@ -219,23 +219,39 @@ namespace Chess_API {
         }
     }
 
+    // Validates if the provided game piece is a valid piece or not
+    bool Game::validate_game_piece(const game_piece& piece) const {
+        if (piece.color == GAME_PIECE_COLOR::NOCOLOR || piece.type == GAME_PIECE_TYPE::NOTYPE) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     // Determines if the provided starting and ending position are valid moves based on Chess ruling
     bool Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
+        // First - validate that the moves are within the bounds of the board
+        if (!validate_position(start_pos)) {
+            return false;
+        }
+
+        if (!validate_position(end_pos)) {
+            return false;
+        }
+
         // For a move to be valid there must first be a piece at the start_pos and there must not be a piece at the end_pos of the same color
         game_piece starting_piece = get_location(start_pos);
         game_piece ending_piece = get_location(end_pos);
 
         // Validate that there exists a piece at start_pos
-        if (starting_piece.color == GAME_PIECE_COLOR::NOCOLOR || starting_piece.type == GAME_PIECE_TYPE::NOTYPE) {
+        if (!validate_game_piece(starting_piece)) {
             return false;
         }
 
-        // Validate that there is NO piece at end_pos or that the piece at the end_pos is a different color
-        if (ending_piece.color != GAME_PIECE_COLOR::NOCOLOR && ending_piece.type != GAME_PIECE_TYPE::NOTYPE) {
-            if (ending_piece.color == starting_piece.color) {
-                return false;
-            }
-        }
+        // Validate that the ending piece is either empty or a valid piece of a different color
+        if (validate_game_piece(ending_piece) && ending_piece.color == starting_piece.color) {
+            return false;
+        } 
 
         // Next - get the moveset for the specific piece and determine if the given move is within the pieces moveset
         std::vector<std::pair<int, int>> moveset = PIECE_MOVESETS.at(starting_piece.type);

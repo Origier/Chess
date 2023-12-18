@@ -84,6 +84,9 @@ namespace Chess_API {
         // Prints the game board to std::cout in a friendly manner
         void show_board() const;
 
+        // Validates if the provided game piece is a valid piece or not
+        bool validate_game_piece(const game_piece& piece) const;
+
         // Determines if the provided starting and ending position are valid moves based on Chess ruling
         bool is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
 

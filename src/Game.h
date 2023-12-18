@@ -73,6 +73,11 @@ namespace Chess_API {
         // Plays the given move placing the game piece from start_pos to end_pos
         void play_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos);
 
+        // Updates the internal game state based on chess ruling
+        // Essentially determines if the game is in stalemate / check / checkmate / or normal play
+        // Intented to be used after every call of play_move - must be manually called
+        void update_game_state();
+
         // Returns the current state of the game
         GAME_STATE get_current_game_state() const;
 
@@ -83,6 +88,14 @@ namespace Chess_API {
         bool is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
 
     private:
+        // Determines if the game is currently in check
+        bool is_in_check();
+
+        // Determines if the game is currently in checkmate
+        bool is_in_checkmate();
+
+        // Determines if the game is currently in stalemate
+        bool is_in_stalemate();
 
         game_piece *** game_board = nullptr;                                // The game boards - containing either pieces or nullptrs
 

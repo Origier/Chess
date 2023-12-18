@@ -184,6 +184,26 @@ namespace Chess_API {
         }
     }
 
+    // Updates the internal game state based on chess ruling
+    // Essentially determines if the game is in stalemate / check / checkmate / or normal play
+    // Intented to be used after every call of play_move - must be manually called
+    void Game::update_game_state() {
+        // Run through each function to check which state the game is in - check first since checkmate implies check
+        // Stalemate last because stalemate is separate from both
+        if (is_in_check()) {
+            current_game_state = GAME_STATE::CHECK;
+        }
+
+        if (is_in_checkmate()) {
+            current_game_state = GAME_STATE::CHECKMATE;
+        }
+
+        if (is_in_stalemate()) {
+            current_game_state = GAME_STATE::STALEMATE;
+        }
+
+    }
+
     // Returns the current state of the game
     Game::GAME_STATE Game::get_current_game_state() const {
         return current_game_state;
@@ -363,4 +383,23 @@ namespace Chess_API {
             }
         }
     }
+
+    // Determines if the game is currently in check
+    bool Game::is_in_check() {
+        // TODO - Implement
+        return false;
+    }
+
+    // Determines if the game is currently in checkmate
+    bool Game::is_in_checkmate() {
+        // TODO - Implement
+        return false;
+    }
+
+    // Determines if the game is currently in stalemate
+    bool Game::is_in_stalemate() {
+        // TODO - Implement
+        return false;
+    }
 }
+

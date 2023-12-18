@@ -18,47 +18,7 @@ namespace Chess_API {
             CHECKMATE
         };
 
-        // Different types of game pieces for chess
-        enum GAME_PIECE_TYPE {
-            PAWN = 1,
-            KNIGHT,
-            ROOK,
-            BISHOP,
-            KING,
-            QUEEN,
-            NOTYPE,  // Void value to indicate an invalid piece
-            TYPEMIN = PAWN,
-            TYPEMAX = QUEEN
-        };
-
-        enum GAME_PIECE_COLOR {
-            WHITE = 1,
-            BLACK,
-            NOCOLOR, // Void value to indicate an invalid piece
-            COLORMIN = WHITE,
-            COLORMAX = BLACK
-        };
-
-        // Representation of a game piece - simple mechanics to set some rules for the piece
-        struct game_piece {
-            // Default values to indicate an invalidly defined piece
-            GAME_PIECE_TYPE type = NOTYPE;      
-            GAME_PIECE_COLOR color = NOCOLOR;
-            int moves_made = 0;
-            bool is_restricted;
-
-            // Default constructor to allow sending pieces that indicate an invalid piece
-            game_piece() {}
-
-            // Simply put - rooks, queens and bishops have freer movemen than the other pieces
-            game_piece(const GAME_PIECE_TYPE type_in, const GAME_PIECE_COLOR color_in) : type(type_in), color(color_in) {
-                if (type_in == ROOK || type_in == QUEEN || type_in == BISHOP) {
-                    is_restricted = false;
-                } else {
-                    is_restricted = true;
-                }
-            }
-        };
+        
 
         // The constantly defined movesets for each piece based on the ruling of chess
         // Each moveset is a normalized move - meaning that it is an x,y directional move rather than the limits of their move

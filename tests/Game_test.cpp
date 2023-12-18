@@ -48,10 +48,10 @@ bool test_getting_rand_location_board_empty() {
 
     Game new_game;
 
-    Game::game_piece piece = new_game.get_location(make_pair(x, y));
+    game_piece piece = new_game.get_location(make_pair(x, y));
 
     // Ensuring this location is an invalid piece - aka 'empty'
-    if (piece.type != Game::GAME_PIECE_TYPE::NOTYPE || piece.color != Game::GAME_PIECE_COLOR::NOCOLOR) {
+    if (piece.type != GAME_PIECE_TYPE::NOTYPE || piece.color != GAME_PIECE_COLOR::NOCOLOR) {
         return false;
     } else {
         return true;
@@ -144,8 +144,8 @@ bool test_adding_piece_to_board() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -153,10 +153,10 @@ bool test_adding_piece_to_board() {
     new_game.add_piece(type, color, make_pair(x, y));
 
     // Grabbing the piece to ensure persistence
-    Game::game_piece piece = new_game.get_location(make_pair(x, y));
+    game_piece piece = new_game.get_location(make_pair(x, y));
 
     // Ensuring the piece persisted
-    if (piece.color == Game::GAME_PIECE_COLOR::NOCOLOR && piece.type == Game::GAME_PIECE_TYPE::NOTYPE) {
+    if (piece.color == GAME_PIECE_COLOR::NOCOLOR && piece.type == GAME_PIECE_TYPE::NOTYPE) {
         return false;
     }
 
@@ -175,24 +175,24 @@ bool test_constness_get_location() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type1 = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color1 = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type1 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color1 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
-    Game::GAME_PIECE_TYPE type2 = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color2 = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type2 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color2 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     // Ensuring the attributes are different for testing changes
     while (true) {
         bool types_differ = false;
         if (type2 == type1) {
-            type2 = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
+            type2 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
         } else {
             types_differ = true;
         }
 
         bool colors_differ = false;
         if (color2 == color1) {
-            color2 = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+            color2 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
         } else {
             colors_differ = true;
         }
@@ -208,14 +208,14 @@ bool test_constness_get_location() {
     new_game.add_piece(type1, color1, make_pair(x, y));
 
     // Grabbing the piece for testing changes made to it
-    Game::game_piece piece1 = new_game.get_location(make_pair(x, y));
+    game_piece piece1 = new_game.get_location(make_pair(x, y));
 
     // Applying changes to what should be a copy of the piece grabbed
     piece1.color = color2;
     piece1.type = type2;
 
     // Grabbing the piece again to ensure that the changes did not persist to the original
-    Game::game_piece piece2 = new_game.get_location(make_pair(x, y));
+    game_piece piece2 = new_game.get_location(make_pair(x, y));
     
     if (piece2.color == color2) {
         return false;
@@ -235,11 +235,11 @@ bool test_adding_piece_to_same_spot() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type1 = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color1 = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type1 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color1 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
-    Game::GAME_PIECE_TYPE type2 = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color2 = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type2 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color2 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -263,10 +263,10 @@ bool test_adding_many_pieces() {
     // Helper struct for later reference
     struct location_info {
         pair<int, int> location;
-        Game::GAME_PIECE_COLOR color;
-        Game::GAME_PIECE_TYPE type;
+        GAME_PIECE_COLOR color;
+        GAME_PIECE_TYPE type;
 
-        location_info(pair<int, int> location_in, Game::GAME_PIECE_COLOR color_in, Game::GAME_PIECE_TYPE type_in) :
+        location_info(pair<int, int> location_in, GAME_PIECE_COLOR color_in, GAME_PIECE_TYPE type_in) :
                     location(location_in), color(color_in), type(type_in) {}
     };
 
@@ -281,8 +281,8 @@ bool test_adding_many_pieces() {
             int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
             // Casting a random piece type and color
-            Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-            Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+            GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+            GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
             // Infinite loop try / catch statement to bruteforce a random placement of pieces that don't collide with each other
             while (true) {
@@ -303,12 +303,12 @@ bool test_adding_many_pieces() {
     
         // If we make it here then all pieces should have been added fine
         // Now validate that every location in the location_info_vec lines up with an item in the board
-        Game::game_piece piece;
+        game_piece piece;
         for (int i = 0; i < location_info_vec.size(); ++i) {
             piece = new_game.get_location(location_info_vec[i].location);
 
             // Ensuring the piece persisted
-            if (piece.color == Game::GAME_PIECE_COLOR::NOCOLOR && piece.type == Game::GAME_PIECE_TYPE::NOTYPE) {
+            if (piece.color == GAME_PIECE_COLOR::NOCOLOR && piece.type == GAME_PIECE_TYPE::NOTYPE) {
                 return false;
             }
 
@@ -358,8 +358,8 @@ bool test_adding_piece_to_invalid_location() {
     int y6 = -1;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -422,14 +422,14 @@ bool test_removing_piece() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
     new_game.add_piece(type, color, make_pair(x, y));
 
-    Game::game_piece piece = new_game.get_location(make_pair(x, y));
+    game_piece piece = new_game.get_location(make_pair(x, y));
 
     // Validating the piece information before continuing
     if (piece.color != color || piece.type != type) {
@@ -442,7 +442,7 @@ bool test_removing_piece() {
     piece = new_game.get_location(make_pair(x, y));
 
     // Validating the piece is no longer at that location
-    if (piece.color != Game::GAME_PIECE_COLOR::NOCOLOR || piece.type != Game::GAME_PIECE_TYPE::NOTYPE) {
+    if (piece.color != GAME_PIECE_COLOR::NOCOLOR || piece.type != GAME_PIECE_TYPE::NOTYPE) {
         return false;
     }
 
@@ -552,8 +552,8 @@ bool test_assignment_operator() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -561,7 +561,7 @@ bool test_assignment_operator() {
 
     Game copy_game = new_game;
 
-    Game::game_piece piece = copy_game.get_location(make_pair(x, y));
+    game_piece piece = copy_game.get_location(make_pair(x, y));
 
     // The piece should have persisted to the copy
     if (piece.color == color && piece.type == type) {
@@ -577,8 +577,8 @@ bool test_assignment_operator_piece_removal() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -589,7 +589,7 @@ bool test_assignment_operator_piece_removal() {
     // Removing copied piece
     copy_game.remove_piece(make_pair(x, y));
 
-    Game::game_piece piece = new_game.get_location(make_pair(x, y));
+    game_piece piece = new_game.get_location(make_pair(x, y));
 
     if (piece.color == color && piece.type == type) {
         return true;
@@ -604,8 +604,8 @@ bool test_copy_constructor() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -613,7 +613,7 @@ bool test_copy_constructor() {
 
     // Helper function to copy over the game data and determine if it is a deep copy or not
     auto helper_func = [type, color, x, y](Game game_copy) {
-        Game::game_piece piece = game_copy.get_location(make_pair(x, y));
+        game_piece piece = game_copy.get_location(make_pair(x, y));
 
         if (piece.color == color && piece.type == type) {
             return true;
@@ -635,8 +635,8 @@ bool test_copy_constructor_removal() {
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -646,10 +646,10 @@ bool test_copy_constructor_removal() {
     auto helper_func = [type, color, x, y](Game game_copy) {
         game_copy.remove_piece(make_pair(x, y));
 
-        Game::game_piece piece = game_copy.get_location(make_pair(x, y));
+        game_piece piece = game_copy.get_location(make_pair(x, y));
 
         // Ensuring the copies has been deleted
-        if (piece.color == Game::GAME_PIECE_COLOR::NOCOLOR && piece.type == Game::GAME_PIECE_TYPE::NOTYPE) {
+        if (piece.color == GAME_PIECE_COLOR::NOCOLOR && piece.type == GAME_PIECE_TYPE::NOTYPE) {
             return true;
         } else {
             return false;
@@ -657,7 +657,7 @@ bool test_copy_constructor_removal() {
     };
 
     if (helper_func(new_game)) {
-        Game::game_piece piece = new_game.get_location(make_pair(x, y));
+        game_piece piece = new_game.get_location(make_pair(x, y));
         // Ensuring persistence in the original copy
         if (piece.color == color && piece.type == type) {
             return true;
@@ -692,8 +692,8 @@ bool test_is_valid_move_end_piece() {
     int y_end = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
     // Casting a random piece type and color
-    Game::GAME_PIECE_TYPE type = static_cast<Game::GAME_PIECE_TYPE>(rand() % Game::GAME_PIECE_TYPE::TYPEMAX + 1);
-    Game::GAME_PIECE_COLOR color = static_cast<Game::GAME_PIECE_COLOR>(rand() % Game::GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
+    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
 
     Game new_game;
 
@@ -708,7 +708,7 @@ bool test_is_valid_move_end_piece() {
 }
 
 // Tests valid moves for a Queen - the queen acts as a valid test for all unrestricted pieces
-bool test_is_valid_moves_queen() {
+bool test_is_valid_move_queen() {
     // Hardcoded for discrete testing purposes
     int x_start = 4;
     int y_start = 4;
@@ -769,7 +769,7 @@ bool test_is_valid_moves_queen() {
 
     Game new_game;
 
-    new_game.add_piece(Game::GAME_PIECE_TYPE::QUEEN, Game::GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
+    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
 
     if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
         return false;
@@ -840,7 +840,7 @@ bool test_is_valid_moves_queen() {
 }
 
 // Tests invalid moves for a Queen - the queen acts as a valid test for all unrestricted pieces
-bool test_is_invalid_moves_queen() {
+bool test_is_invalid_move_queen() {
     // Hardcoded for discrete testing purposes
     int x_start = 0;
     int y_start = 0;
@@ -859,7 +859,7 @@ bool test_is_invalid_moves_queen() {
     
     Game new_game;
 
-    new_game.add_piece(Game::GAME_PIECE_TYPE::QUEEN, Game::GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
+    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
 
     if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
         return false;
@@ -1102,7 +1102,7 @@ int run_game_tests() {
 
     // Testing is_valid_move for valid queen moves
     try {
-        if (!test_is_valid_moves_queen()) {
+        if (!test_is_valid_move_queen()) {
             cout << "   ERROR: The game does not correctly register correct moves for the queen" << endl;
             ++errors;
         }
@@ -1114,7 +1114,7 @@ int run_game_tests() {
 
     // Testing is_valid_move for invalid queen moves
     try {
-        if (!test_is_invalid_moves_queen()) {
+        if (!test_is_invalid_move_queen()) {
             cout << "   ERROR: The game does not correctly register incorrect moves for the queen" << endl;
             ++errors;
         }

@@ -1,7 +1,6 @@
 #include "Game.h"
 
 namespace Chess_API {
-
     // Default constructor creating an empty game
     Game::Game() {
         // Building out the game board
@@ -97,7 +96,7 @@ namespace Chess_API {
     // Returns the game_piece pointer for the provided location
     // Throws an error if attempting to pull a location beyond the scope of the board
     // Simply returns an invalid piece if there isn't anything there
-    Game::game_piece Game::get_location(const std::pair<int, int>& location) const {
+    game_piece Game::get_location(const std::pair<int, int>& location) const {
         int x = std::get<0>(location);
         int y = std::get<1>(location);
 
@@ -201,6 +200,6 @@ namespace Chess_API {
         }
 
 
-        // TODO: Consider special moves as well such as en passant and castling or a pawns inital double move
+        // TODO: Consider special moves as well such as en passant, castling, pawn double move and pawn angular capture
     }
 }

@@ -87,7 +87,15 @@ namespace Chess_API {
         // Validates if the provided game piece is a valid piece or not
         bool validate_game_piece(const game_piece& piece) const;
 
-        // Determines if the provided starting and ending position are valid moves based on Chess ruling
+        // Determines if the move described by the start and end positions is a legal move based on chess ruling
+        // Notably - this only determines if this move is considered by chess ruling for the pieces
+        // However, this does not take into consideration if this is a valid move given the board state
+        // No checks are made to determine if the game will be in check based on this function
+        bool is_legal_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
+
+        // Determines if the move described by the start and end positions is a valid move based on chess ruling
+        // Notably - this is different from is_legal_move because it ensures the move is not placing the player in check
+        // This is the function that should be used to determine if a move is truly valid
         bool is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
 
     private:
@@ -101,7 +109,7 @@ namespace Chess_API {
         bool validate_piece_move_unrestricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move, const std::pair<int, int>& start_pos, const std::pair<int, int> end_pos) const;
 
         // Determines is baseline delta move for the piece, finding the root move direction for unrestricted pieces
-        std::pair<int, int> calculate_piece_delta_move(const game_piece& piece, const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
+        std::pair<float, float> calculate_piece_delta_move(const game_piece& piece, const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
 
         // Validates that the move is an acceptable move for a pawn given the current state of the board - no consideration for checks
         bool validate_pawn_move(const game_piece& starting_piece, const game_piece& ending_piece, const std::pair<int, int>& move, const std::pair<int, int>& end_pos) const;

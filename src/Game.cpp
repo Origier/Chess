@@ -268,35 +268,37 @@ namespace Chess_API {
     }
 
     // Determines is baseline delta move for the piece, finding the root move direction for unrestricted pieces
-    std::pair<int, int> Game::calculate_piece_delta_move(const game_piece& piece, const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
+    std::pair<float, float> Game::calculate_piece_delta_move(const game_piece& piece, const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
         // Calculate the overall move
-        int delta_x = std::get<0>(start_pos) - std::get<0>(end_pos);
-        int delta_y = std::get<1>(start_pos) - std::get<1>(end_pos);
+        int delta_x = std::get<0>(end_pos) - std::get<0>(start_pos);
+        int delta_y = std::get<1>(end_pos) - std::get<1>(start_pos);
+        float base_delta_x = 0;
+        float base_delta_y = 0;
 
         // For unrestricted pieces - we must first calculate the rise over run to 'normalize' the movement
         if (!piece.is_restricted) {
             // Ensuring no division by 0
             if (delta_y == 0) {
                 // If no change in y then delta_x is just divided by its own absolute value
-                delta_x = delta_x / abs(delta_x);
+                base_delta_x = delta_x / abs(delta_x);
+            } else if (delta_x == 0) {
+                // If no change in x then delta_y is just divided by its own absolute value
+                base_delta_y = delta_y / abs(delta_y);
             } else {
-                float rise_over_run = (static_cast<float>(delta_x) / static_cast<float>(delta_y));
-                // We know that rise_over_run should be a whole number for any of the unrestricted pieces
-                // If it is not then change the delta_x to something that will never match a move
-                int big_num = rise_over_run * 1000;
-                big_num = big_num / 1000;
-                
-                delta_x = ceil(rise_over_run);
-                
-                if (delta_x != big_num) {
-                    delta_x = 1000;
+                // Determine the smallests delta value as the value to divide both by to get a base value
+                if (delta_y < delta_x) {
+                    base_delta_x = static_cast<float>(delta_x) / static_cast<float>(abs(delta_y));
+                    base_delta_y = static_cast<float>(delta_y) / static_cast<float>(abs(delta_y));
                 } else {
-                    delta_y = 1;
+                    base_delta_x = static_cast<float>(delta_x) / static_cast<float>(abs(delta_x));
+                    base_delta_y = static_cast<float>(delta_y) / static_cast<float>(abs(delta_x));
                 }
             }
         }
 
-        return std::make_pair(delta_x, delta_y);
+        std::pair<float, float> delta_pair = std::make_pair(base_delta_x, base_delta_y);
+
+        return delta_pair;
     } 
 
     // Validates that the move is an acceptable move for a pawn given the current state of the board - no consideration for checks
@@ -412,8 +414,11 @@ namespace Chess_API {
         }
     }
 
-    // Determines if the provided starting and ending position are valid moves based on Chess ruling
-    bool Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
+    // Determines if the move described by the start and end positions is a legal move based on chess ruling
+    // Notably - this only determines if this move is considered by chess ruling for the pieces
+    // However, this does not take into consideration if this is a valid move given the board state
+    // No checks are made to determine if the game will be in check based on this function
+    bool Game::is_legal_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
         // First - validate that the moves are within the bounds of the board
         if (!validate_position(start_pos)) {
             return false;
@@ -438,30 +443,44 @@ namespace Chess_API {
         } 
 
         // Determine the baseline movement - unrestricted pieces will have the movement become base 1
-        std::pair<int, int> delta_pair = calculate_piece_delta_move(starting_piece, start_pos, end_pos);
+        std::pair<float, float> delta_pair_float = calculate_piece_delta_move(starting_piece, start_pos, end_pos);
 
+        // Ensuring the delta pair are whole numbers
+        if (ceil(std::get<0>(delta_pair_float)) != floor(std::get<0>(delta_pair_float)) || ceil(std::get<1>(delta_pair_float)) != floor(std::get<1>(delta_pair_float))) {
+            return false;
+        }
+
+        std::pair<int, int> delta_pair = std::make_pair(std::get<0>(delta_pair_float), std::get<1>(delta_pair_float));
+        
         // Determine if the delta_pair is a valid move for each piece given the game board
         // Pawns have special ruling on how they move
         if (starting_piece.type == GAME_PIECE_TYPE::PAWN) {
-            if (!validate_pawn_move(starting_piece, ending_piece, delta_pair, end_pos)) {
-                return false;
-            }
+            return validate_pawn_move(starting_piece, ending_piece, delta_pair, end_pos);
 
         // Special consideration should also be taken for kings for castling
         } else if (starting_piece.type == GAME_PIECE_TYPE::KING) {
-            if (!validate_king_move(starting_piece, delta_pair, start_pos)) {
-                return false;
-            }
+            return validate_king_move(starting_piece, delta_pair, start_pos);
 
         // For unrestricted pieces - there must be a clear path to the end_pos
         } else if (!starting_piece.is_restricted) {
+            return validate_piece_move_unrestricted(starting_piece.type, delta_pair, start_pos, end_pos);
         
         // Lastly for unrestricted pieces its a simple look-up
         } else {
-            if (!validate_piece_move_restricted(starting_piece.type, delta_pair)) {
-                return false;
-            }
+            return validate_piece_move_restricted(starting_piece.type, delta_pair);
         }
+    }
+
+    // Determines if the move described by the start and end positions is a valid move based on chess ruling
+    // Notably - this is different from is_legal_move because it ensures the move is not placing the player in check
+    // This is the function that should be used to determine if a move is truly valid
+    bool Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
+        if (!is_legal_move(start_pos, end_pos)) {
+            return false;
+        }
+
+        // TODO - Implement check for if this move places the player in check
+        return true;
     }
 
     // Determines if the game is currently in check

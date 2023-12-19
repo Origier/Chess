@@ -1106,8 +1106,9 @@ int run_game_tests() {
             cout << "   ERROR: The game does not correctly register correct moves for the queen" << endl;
             ++errors;
         }
-    } catch(...) {
+    } catch(exception e) {
         cout << "   ERROR: Something unknown went wrong when attempting to test the valid moves for a queen" << endl;
+        cout << "   " << e.what() << endl;
         ++errors;
     }
 

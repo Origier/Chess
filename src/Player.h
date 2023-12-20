@@ -7,7 +7,7 @@
 
 namespace Chess_API {
     class Player {
-    private:
+    protected:
         int player_id;                  // Player identifier
         GAME_PIECE_COLOR player_color;  // Piece color to help identifying the player further
         std::string name;               // Players name
@@ -25,7 +25,7 @@ namespace Chess_API {
         }
 
         // Constructor for recieving the players name
-        Player(std::string name_in) : name(name_in){
+        Player(std::string name_in, GAME_PIECE_COLOR color_in) : name(name_in), player_color(color_in) {
             set_player_id();
         }
 
@@ -33,14 +33,12 @@ namespace Chess_API {
 
         int get_player_id() const {return player_id;}
 
-        void set_player_color(GAME_PIECE_COLOR color_in) {player_color = color_in;}
-
-        GAME_PIECE_COLOR get_player_color() {return player_color;}
+        GAME_PIECE_COLOR get_player_color() const {return player_color;}
 
         bool operator==(const Player& other) const {return player_id == other.player_id;}
         
         // Prompts the player to take their turn
-        virtual std::pair<std::string, std::string> take_turn() const {return DEFAULT_STRING_PAIR;}
+        virtual std::pair<std::string, std::string> take_turn() const = 0;
     };
 }
 

@@ -9,12 +9,13 @@ namespace Chess_API {
     class Human_Player: public Player {
     public:
         // Default Constructor for the computer player
-        Human_Player() : Player(DEFAULT_HUMAN_NAME) {}
+        Human_Player() : Player() {}
 
         // Name based constructor for the computer player
-        Human_Player(std::string name) : Player(name) {}
+        Human_Player(std::string name, GAME_PIECE_COLOR color_in) : Player(name, color_in) {}
 
         std::pair<std::string, std::string> take_turn() const;
+
     };
 }
 

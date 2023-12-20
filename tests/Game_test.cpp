@@ -6,7 +6,9 @@ using namespace std;
 // Tests creating a basic game object and ensuring there isn't any memory leaks issues - returns true if successful
 bool test_create_game() {
     try {
-        Game * new_game = new Game;
+        shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+        shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+        Game * new_game = new Game(player1, player2);
         delete new_game;
         return true;
     } catch (exception& e) {
@@ -22,7 +24,10 @@ bool test_creating_many_games() {
         Game ** game_array = new Game * [number_of_games];
         // Pushing all of the games onto the stack
         for (int i = 0; i < number_of_games; ++i) {
-            game_array[i] = new Game;
+            shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+            shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+            Game * game = new Game(player1, player2);
+            game_array[i] = game;
         }
 
         // Deleting all of the games from the stack
@@ -46,7 +51,9 @@ bool test_getting_rand_location_board_empty() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     game_piece piece = new_game.get_location(make_pair(x, y));
 
@@ -84,7 +91,9 @@ bool test_no_access_to_out_of_bounds() {
     int x6 = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y6 = -1;
     
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     try {
         new_game.get_location(make_pair(x1, y1));
@@ -143,11 +152,13 @@ bool test_adding_piece_to_board() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     // Adding the piece
     new_game.add_piece(type, color, make_pair(x, y));
@@ -174,12 +185,12 @@ bool test_constness_get_location() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type1 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color1 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color1 = GAME_PIECE_COLOR::BLACK;
 
     GAME_PIECE_TYPE type2 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color2 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color2 = GAME_PIECE_COLOR::BLACK;
 
     // Ensuring the attributes are different for testing changes
     while (true) {
@@ -202,7 +213,9 @@ bool test_constness_get_location() {
         }
     }
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     // Adding the piece
     new_game.add_piece(type1, color1, make_pair(x, y));
@@ -236,12 +249,14 @@ bool test_adding_piece_to_same_spot() {
 
     // Casting a random piece type and color
     GAME_PIECE_TYPE type1 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color1 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color1 = GAME_PIECE_COLOR::BLACK;
 
     GAME_PIECE_TYPE type2 = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color2 = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color2 = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     // Adding the piece
     new_game.add_piece(type1, color1, make_pair(x, y));
@@ -272,7 +287,9 @@ bool test_adding_many_pieces() {
 
     vector<location_info> location_info_vec;
     
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     // Fetching random components for pieces and placing them on the board
     try {
@@ -280,9 +297,9 @@ bool test_adding_many_pieces() {
             int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
             int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-            // Casting a random piece type and color
+            // Casting a random piece type
             GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-            GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+            GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
             // Infinite loop try / catch statement to bruteforce a random placement of pieces that don't collide with each other
             while (true) {
@@ -357,11 +374,13 @@ bool test_adding_piece_to_invalid_location() {
     int x6 = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y6 = -1;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     try {
         new_game.add_piece(type, color, make_pair(x1, y1));
@@ -421,11 +440,13 @@ bool test_removing_piece() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     new_game.add_piece(type, color, make_pair(x, y));
 
@@ -455,7 +476,9 @@ bool test_removing_no_piece() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     try {
         new_game.remove_piece(make_pair(x, y));
@@ -492,7 +515,9 @@ bool test_removing_invalid_locations() {
     int x6 = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y6 = -1;
     
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     try {
         new_game.remove_piece(make_pair(x1, y1));
@@ -551,11 +576,13 @@ bool test_assignment_operator() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     new_game.add_piece(type, color, make_pair(x, y));
 
@@ -576,11 +603,13 @@ bool test_assignment_operator_piece_removal() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     new_game.add_piece(type, color, make_pair(x, y));
 
@@ -603,11 +632,13 @@ bool test_copy_constructor() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     new_game.add_piece(type, color, make_pair(x, y));
 
@@ -636,9 +667,11 @@ bool test_copy_constructor_removal() {
 
     // Casting a random piece type and color
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     new_game.add_piece(type, color, make_pair(x, y));
 
@@ -674,7 +707,9 @@ bool test_is_valid_move_start_piece() {
     int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     if (new_game.is_valid_move(make_pair(x, y), make_pair(x, y))) {
         return false;
@@ -691,11 +726,13 @@ bool test_is_valid_move_end_piece() {
     int x_end = rand() % DEFAULT_CHESS_BOARD_SIZE;
     int y_end = rand() % DEFAULT_CHESS_BOARD_SIZE;
 
-    // Casting a random piece type and color
+    // Casting a random piece type
     GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = static_cast<GAME_PIECE_COLOR>(rand() % GAME_PIECE_COLOR::COLORMAX + 1);
+    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
     new_game.add_piece(type, color, make_pair(x_start, y_start));
     new_game.add_piece(type, color, make_pair(x_end, y_end));
@@ -767,9 +804,11 @@ bool test_is_valid_move_queen() {
     int x_end16 = 4;
     int y_end16 = 1;
 
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
-    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
+    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::WHITE, make_pair(x_start, y_start));
 
     if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
         return false;
@@ -857,9 +896,11 @@ bool test_is_invalid_move_queen() {
     int x_end3 = 2;
     int y_end3 = 1;
     
-    Game new_game;
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
 
-    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::BLACK, make_pair(x_start, y_start));
+    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::WHITE, make_pair(x_start, y_start));
 
     if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
         return false;
@@ -889,12 +930,12 @@ int run_game_tests() {
             ++errors;
         }
     // Case where deallocation was a problem
-    } catch(...) {
-        cout << "   ERROR: An error occured while the game object was exiting scope" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_create_game threw an error: " << e.what() << endl;
         ++errors;
     }
 
-
+    
     // Testing stability with many instantiations
     try {
         if(!test_creating_many_games()) {
@@ -902,11 +943,11 @@ int run_game_tests() {
             ++errors;
         }
     // Case where deallocation was a problem
-    } catch(...) {
-        cout << "   ERROR: An unknown error occured while attempting to create many game objects" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_creating_many_games threw an error: " << e.what() << endl;
         ++errors;
     }
-
+    
 
     // Testing getting a simple location
     try {
@@ -914,8 +955,8 @@ int run_game_tests() {
             cout << "   ERROR: The empty board is not full of invalid pieces" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something went wrong when attempting to grab a random location on the board" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_getting_rand_location_board_empty threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -926,20 +967,20 @@ int run_game_tests() {
             cout << "   ERROR: The game allowed a selection out-of-bounds" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something went wrong when attempting to test bound integrity" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_no_access_to_out_of_bounds threw an error: " << e.what() << endl;
         ++errors;
     }
 
-
+    
     // Testing adding a random piece to the board
     try {
         if (!test_adding_piece_to_board()) {
             cout << "   ERROR: The board was unable to successfully add a new random piece" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something went wrong when attempting add the random piece to the board" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_adding_piece_to_board threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -950,8 +991,8 @@ int run_game_tests() {
             cout << "   ERROR: The game allowed pieces to be modified externally" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something went wrong when attempting to test the constness of game pieces" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_constness_get_location threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -962,8 +1003,8 @@ int run_game_tests() {
             cout << "   ERROR: The board allowed a piece to be placed on top of another piece" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something went wrong when attempting add the piece on top of another piece" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_adding_piece_to_same_spot threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -974,8 +1015,8 @@ int run_game_tests() {
             cout << "   ERROR: An issue occured while attempting to add many pieces to the game board" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting add many pieces to the board" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_adding_many_pieces threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -986,8 +1027,8 @@ int run_game_tests() {
             cout << "   ERROR: The board allowed a piece to be created outside the board bounds" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when testing the board integrity" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_adding_piece_to_invalid_location threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -998,8 +1039,8 @@ int run_game_tests() {
             cout << "   ERROR: The board did not successfully remove the piece" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to remove a game piece" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_removing_piece threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -1010,8 +1051,8 @@ int run_game_tests() {
             cout << "   ERROR: The game had an issue attempting to remove nothing from the board" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to remove nothing" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_removing_no_piece threw an error: " << e.what() << endl;
         ++errors;
     }
     
@@ -1022,8 +1063,8 @@ int run_game_tests() {
             cout << "   ERROR: The game allowed removal of locations outside the bounds" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to test removal of invalid locations" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_removing_invalid_locations threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -1034,8 +1075,8 @@ int run_game_tests() {
             cout << "   ERROR: The game assignment operator did not assign deep data" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to use the assignment operator" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_assignment_operator threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -1046,8 +1087,8 @@ int run_game_tests() {
             cout << "   ERROR: The game assignment operator does not separate the data" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to test the assignment operator data integrity" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_assignment_operator_piece_removal threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -1058,11 +1099,12 @@ int run_game_tests() {
             cout << "   ERROR: The game copy constructor does not perform a deep copy correctly" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to use the copy constructor" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_copy_constructor threw an error: " << e.what() << endl;
         ++errors;
     }
 
+    
 
     // Testing the copy constructor to ensure separation of data
     try {
@@ -1070,8 +1112,8 @@ int run_game_tests() {
             cout << "   ERROR: The game copy constructor does not partion separate memory for game copies" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to test the copy constructor for data integrity" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_copy_constructor_removal threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -1082,8 +1124,8 @@ int run_game_tests() {
             cout << "   ERROR: The game does not require a starting piece for a move to be valid" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to test the requirement for a starting piece" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_is_valid_move_start_piece threw an error: " << e.what() << endl;
         ++errors;
     }
 
@@ -1094,11 +1136,11 @@ int run_game_tests() {
             cout << "   ERROR: The game does not require an ending piece to be a different color for a valid move" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to test the requirement for an ending piece" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_is_valid_move_end_piece threw an error: " << e.what() << endl;
         ++errors;
     }
-
+    cout << "Check point!" << endl;
 
     // Testing is_valid_move for valid queen moves
     try {
@@ -1107,20 +1149,19 @@ int run_game_tests() {
             ++errors;
         }
     } catch(exception e) {
-        cout << "   ERROR: Something unknown went wrong when attempting to test the valid moves for a queen" << endl;
-        cout << "   " << e.what() << endl;
+        cout << "   ERROR: test_is_valid_move_queen threw an error: " << e.what() << endl;
         ++errors;
     }
 
-
+    
     // Testing is_valid_move for invalid queen moves
     try {
         if (!test_is_invalid_move_queen()) {
             cout << "   ERROR: The game does not correctly register incorrect moves for the queen" << endl;
             ++errors;
         }
-    } catch(...) {
-        cout << "   ERROR: Something unknown went wrong when attempting to test the invalid moves for a queen" << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_is_invalid_move_queen threw an error: " << e.what() << endl;
         ++errors;
     }
 

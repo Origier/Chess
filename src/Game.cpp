@@ -2,7 +2,7 @@
 
 namespace Chess_API {
     // Default constructor creating an empty game
-    Game::Game() {
+    Game::Game(const std::shared_ptr<Player> player1_in, const std::shared_ptr<Player> player2_in) {
         // Building out the game board
         game_board = new game_piece ** [DEFAULT_CHESS_BOARD_SIZE];
 
@@ -12,6 +12,15 @@ namespace Chess_API {
             for (int j = 0; j < DEFAULT_CHESS_BOARD_SIZE; ++j) {
                 game_board[i][j] = nullptr;
             }
+        }
+
+        player1 = player1_in;
+        player2 = player2_in;
+
+        current_player = player1;
+
+        if (player1->get_player_color() == player2->get_player_color()) {
+            throw std::runtime_error("The player colors must be different");
         }
     }
 
@@ -33,6 +42,10 @@ namespace Chess_API {
                 }   
             }
         }
+
+        player1 = copy_source.player1;
+        player2 = copy_source.player2;
+        current_player = copy_source.current_player;
     }
 
     // Destructor for removing all of the board allocated memory
@@ -73,6 +86,10 @@ namespace Chess_API {
             }
         }
 
+        player1 = other.player1;
+        player2 = other.player2;
+        current_player = other.current_player;
+
         return *this;
     }
 
@@ -84,6 +101,10 @@ namespace Chess_API {
 
         if (!validate_position(location)) {
             throw std::runtime_error("You cannot place a piece outside the bounds of the board");
+        }
+
+        if (color_in != player1->get_player_color() && color_in != player2->get_player_color()) {
+            throw std::runtime_error("The piece colors need to match one of the players");
         }
 
         if (game_board[x][y] != nullptr) {
@@ -174,6 +195,12 @@ namespace Chess_API {
         } else {
             en_passant_position = std::make_pair(-1, -1);
         }
+
+
+
+
+
+        // TODO: Implement captures for en passant and implement castling move and detection
     }
 
     // Updates the internal game state based on chess ruling
@@ -442,6 +469,11 @@ namespace Chess_API {
             return false;
         } 
 
+        // Next validate that the current player has control of the target piece
+        if (starting_piece.color != current_player->get_player_color()) {
+            return false;
+        }
+
         // Determine the baseline movement - unrestricted pieces will have the movement become base 1
         std::pair<float, float> delta_pair_float = calculate_piece_delta_move(starting_piece, start_pos, end_pos);
 
@@ -481,6 +513,15 @@ namespace Chess_API {
 
         // TODO - Implement check for if this move places the player in check
         return true;
+    }
+
+    // Swaps which player is the current player
+    void Game::swap_current_player() {
+        if (current_player == player1) {
+            current_player = player2;
+        } else {
+            current_player = player1;
+        }
     }
 
     // Determines if the game is currently in check

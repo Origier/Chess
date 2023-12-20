@@ -3,7 +3,10 @@
 
 #include <tuple>            // std::pair
 #include <unordered_map>    // std::unordered_map for containing the key-value pair of game piece movesets
-#include <stdexcept>
+#include <stdexcept>        // std::runtime_error
+#include <memory>           // std::shared_ptr
+
+#include "Player.h"
 #include "Chess_API_vars.h"
 
 
@@ -47,7 +50,7 @@ namespace Chess_API {
         };
 
         // Default constructor creating an empty game
-        Game();
+        Game(const std::shared_ptr<Player> player1_in, const std::shared_ptr<Player> player2_in);
 
         // Copy constructor
         Game(const Game& copy_source);
@@ -98,6 +101,12 @@ namespace Chess_API {
         // This is the function that should be used to determine if a move is truly valid
         bool is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const;
 
+        // Swaps which player is the current player
+        void swap_current_player();
+
+        // Returns a read-only version of the current player
+        const std::shared_ptr<Player> get_current_player() const {return current_player;}
+
     private:
         // validates that the position is a valid position on the board
         bool validate_position(const std::pair<int, int>& position) const;
@@ -125,6 +134,10 @@ namespace Chess_API {
 
         // Determines if the game is currently in stalemate
         bool is_in_stalemate();
+
+        std::shared_ptr<Player> player1;                                    // Player object that would have the "white" pieces
+        std::shared_ptr<Player> player2;                                    // Player object that would have the "black" pieces
+        std::shared_ptr<Player> current_player;                             // Reference to whomever is the current player object to take their turn
 
         game_piece *** game_board = nullptr;                                // The game boards - containing either pieces or nullptrs
 

@@ -2,6 +2,7 @@
 #define CPLUSPLUS_GAME_TEST
 
 #include "Game.h"
+#include "Human_Player.h"
 #include "Chess_API_vars.h"
 
 #include <vector>

@@ -40,57 +40,35 @@ namespace Chess_API {
     // Default constructor to start a blank new game against a computer player
     Chess::Chess() {
         // Default game, computer player and player
-        game = new Game();
-        player1 = new Human_Player();
-        player2 = new Computer_Player(game);
-        current_player = player1;
+        std::shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::COLORMIN));
+        std::shared_ptr<Player> player2(new Computer_Player(game, GAME_PIECE_COLOR::COLORMAX, DEFAULT_COMPUTER_DIFFICULTY));
+        game = new Game(player1, player2);
     }
 
     // Main constructor for taking the players name as well as the difficulty to play on 
-    Chess::Chess(std::string player_name, Computer_Player::DIFFICULTY difficulty) {
-        // Default game, computer player and player
-        game = new Game();
-        player1 = new Human_Player(player_name);
-        player2 = new Computer_Player(game, difficulty);
-        current_player = player1;
+    Chess::Chess(std::string player_name, DIFFICULTY difficulty) {
+        std::shared_ptr<Player> player1(new Human_Player(player_name, GAME_PIECE_COLOR::COLORMIN));
+        std::shared_ptr<Player> player2(new Computer_Player(game, GAME_PIECE_COLOR::COLORMAX, difficulty));
+        game = new Game(player1, player2);
     }
 
     // Multiplayer constructor to play with two human players
     Chess::Chess(std::string player_name1, std::string player_name2) {
-        // Default game, computer player and player
-        game = new Game();
-        player1 = new Human_Player(player_name1);
-        player2 = new Human_Player(player_name2);
-        current_player = player1;
+        std::shared_ptr<Player> player1(new Human_Player(player_name1, GAME_PIECE_COLOR::COLORMIN));
+        std::shared_ptr<Player> player2(new Human_Player(player_name2, GAME_PIECE_COLOR::COLORMIN));
+        game = new Game(player1, player2);
     }
 
     // Constructor that can use serialized data to generate the game up to the current point based on past moves
-    Chess::Chess(Game game_in, std::vector<std::pair<std::string, std::string>> past_moves, std::string player_name1, std::string player_name2, Computer_Player::DIFFICULTY difficulty) {
+    Chess::Chess(Game game_in, std::vector<std::pair<std::string, std::string>> past_moves) {
         // Copies all of the serialized data to recreate the game as it was
         game = new Game(game_in);
         played_moves = past_moves;
-        player1 = new Human_Player(player_name1);
-
-        // Currently utilizes the name of player 2 to determine if the saved game was against a player or computer
-        if (player_name2 == DEFAULT_COMPUTER_NAME) {
-            player2 = new Computer_Player(game, difficulty);
-        } else {
-            player2 = new Human_Player(player_name2);
-        }
-
-        // If the number of past moves is odd then it is currently players 2's turn
-        if (played_moves.size() % 2 == 1) {
-            current_player = player2;
-        } else {
-            current_player = player1;
-        }
     }
 
     // Destructor that deletes all game data
     Chess::~Chess() {
         delete game;
-        delete player1;
-        delete player2;
     }
 
     /*  Plays the next turn of the game - allows for the next determined player to input their moves into the game
@@ -98,7 +76,7 @@ namespace Chess_API {
     */ 
     void Chess::play_turn() {
         // Determining that the move is valid per the chess board
-        std::pair<std::string, std::string> new_move = current_player->take_turn();
+        std::pair<std::string, std::string> new_move = game->get_current_player()->take_turn();
 
         if (!is_valid_player_input(new_move)) {
             throw std::runtime_error(INVALID_INPUT_ERROR_MSG);
@@ -135,11 +113,7 @@ namespace Chess_API {
         game->play_move(start_pos, end_pos);
 
         // Switch which player is the new current player
-        if (current_player == player1) {
-            current_player = player2;
-        } else {
-            current_player = player1;
-        }
+        game->swap_current_player();
     }
 
     // Determines if the game is currently in a state of check
@@ -170,8 +144,8 @@ namespace Chess_API {
     }
 
     // Returns the current player
-    const Player * Chess::get_current_player() const {
-        return current_player;
+    const std::shared_ptr<Player> Chess::get_current_player() const {
+        return game->get_current_player();
     }
 
     // Displays the board to the console

@@ -744,8 +744,8 @@ bool test_is_valid_move_end_piece() {
     }
 }
 
-// Tests valid moves for a Queen - the queen acts as a valid test for all unrestricted pieces
-bool test_is_valid_move_queen() {
+// Tests legal moves for a Queen - the queen acts as a valid test for all unrestricted pieces
+bool test_is_legal_move_queen() {
     // Hardcoded for discrete testing purposes
     int x_start = 4;
     int y_start = 4;
@@ -810,67 +810,67 @@ bool test_is_valid_move_queen() {
 
     new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::WHITE, make_pair(x_start, y_start));
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end4, y_end4))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end4, y_end4))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end5, y_end5))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end5, y_end5))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end6, y_end6))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end6, y_end6))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end7, y_end7))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end7, y_end7))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end8, y_end8))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end8, y_end8))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end9, y_end9))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end9, y_end9))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end10, y_end10))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end10, y_end10))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end11, y_end11))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end11, y_end11))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end12, y_end12))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end12, y_end12))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end13, y_end13))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end13, y_end13))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end14, y_end14))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end14, y_end14))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end15, y_end15))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end15, y_end15))) {
         return false;
     }
 
-    if(!new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end16, y_end16))) {
+    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end16, y_end16))) {
         return false;
     }
 
@@ -878,8 +878,8 @@ bool test_is_valid_move_queen() {
     return true;
 }
 
-// Tests invalid moves for a Queen - the queen acts as a valid test for all unrestricted pieces
-bool test_is_invalid_move_queen() {
+// Tests illegal moves for a Queen - the queen acts as a valid test for all unrestricted pieces
+bool test_is_illegal_move_queen() {
     // Hardcoded for discrete testing purposes
     int x_start = 0;
     int y_start = 0;
@@ -902,15 +902,15 @@ bool test_is_invalid_move_queen() {
 
     new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::WHITE, make_pair(x_start, y_start));
 
-    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
+    if (new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
         return false;
     }
 
-    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
+    if (new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
         return false;
     }
 
-    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
+    if (new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
         return false;
     }
 
@@ -918,6 +918,13 @@ bool test_is_invalid_move_queen() {
     return true;
 }
 
+// Use only when messing with the display settings - not an important unit test
+void test_display() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.show_board();
+}
 
 // Executes all of the unit tests for the Chess object - if any fail it will return an integer to describe the number that failed
 int run_game_tests() {
@@ -1140,30 +1147,34 @@ int run_game_tests() {
         cout << "   ERROR: test_is_valid_move_end_piece threw an error: " << e.what() << endl;
         ++errors;
     }
-    cout << "Check point!" << endl;
 
-    // Testing is_valid_move for valid queen moves
+
+    // Testing is_legal_move for legal queen moves
     try {
-        if (!test_is_valid_move_queen()) {
+        if (!test_is_legal_move_queen()) {
             cout << "   ERROR: The game does not correctly register correct moves for the queen" << endl;
             ++errors;
         }
     } catch(exception e) {
-        cout << "   ERROR: test_is_valid_move_queen threw an error: " << e.what() << endl;
+        cout << "   ERROR: test_is_legal_move_queen threw an error: " << e.what() << endl;
         ++errors;
     }
 
     
-    // Testing is_valid_move for invalid queen moves
+    // Testing is_legal_move for illegal queen moves
     try {
-        if (!test_is_invalid_move_queen()) {
+        if (!test_is_illegal_move_queen()) {
             cout << "   ERROR: The game does not correctly register incorrect moves for the queen" << endl;
             ++errors;
         }
     } catch(exception e) {
-        cout << "   ERROR: test_is_invalid_move_queen threw an error: " << e.what() << endl;
+        cout << "   ERROR: test_is_illegal_move_queen threw an error: " << e.what() << endl;
         ++errors;
     }
+
+    // Temporary test to see the display
+    test_display();
+
 
     return errors;
 }

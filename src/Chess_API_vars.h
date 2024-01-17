@@ -3,6 +3,7 @@
 
 #include <string>
 #include <tuple>
+#include <unordered_map>
 
 namespace Chess_API {
     const std::string VALID_CHARS = "abcdefgh";                                                             // Valid characters referring to the places on the chess board
@@ -11,6 +12,10 @@ namespace Chess_API {
     const std::string DEFAULT_PLAYER_NAME = "Default";                                                      // Default name for the player class
     const std::string DEFAULT_HUMAN_NAME = "Human";                                                         // Default name for the human player
     const short DEFAULT_CHESS_BOARD_SIZE = 8;                                                               // Default value for the chess' board size
+    const short SPACING_BETWEEN_PIECES_FOR_DISPLAY = 1;                                                     // Default amount of spacing to separate each board element when displaying the board in the CLI
+    const wchar_t CHESS_BOARD_SEPERATOR_CHAR = '|';                                                         // Default seperator between each element on the boards
+    const wchar_t CHESS_BOARD_SPACE_CHAR = ' ';                                                             // Default char denoting spaces on the chess board
+    const wchar_t CHESS_BOARD_LINE_CHAR = *L"\u2500";                                                       // Default char to separate lines on the chess board
 
     // Difficulties for the computer players
     enum DIFFICULTY {
@@ -75,6 +80,25 @@ namespace Chess_API {
             // Default value to avoid errors in case this is used
             pawn_move_positive_x = false;
         }
+    };
+
+    // Symbols for each game piece when printing to the console
+    const std::unordered_map<GAME_PIECE_TYPE, wchar_t> BLACK_GAME_PIECE_SYMBOLS = {
+        {PAWN, '\u265F'},
+        {ROOK, '\u265C'},
+        {KNIGHT, '\u265E'},
+        {BISHOP, '\u265D'},
+        {KING, '\u265A'},
+        {QUEEN, '\u265B'}
+    };
+
+    const std::unordered_map<GAME_PIECE_TYPE, wchar_t> WHITE_GAME_PIECE_SYMBOLS = {
+        {PAWN, '\u2659'},
+        {ROOK, '\u2656'},
+        {KNIGHT, '\u2658'},
+        {BISHOP, '\u2657'},
+        {KING, '\u2654'},
+        {QUEEN, '\u2655'}
     };
 
 }

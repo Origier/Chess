@@ -14,6 +14,7 @@ namespace Chess_API {
             }
         }
 
+        // Setting up the players
         player1 = player1_in;
         player2 = player2_in;
 
@@ -152,7 +153,9 @@ namespace Chess_API {
 
     // Plays the given move placing the game piece from start_pos to end_pos
     // Assumes that the move has been validated by is_valid_move - this function only validates that the move is within the bounds of the board
-    void Game::play_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) {
+    // Simulate_move is a flag that will do all of the normal functionality with the expectation that the move will be undone
+    // Therefore it does not update cached information (en_passant_position / king position)
+    void Game::play_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos, bool simulate_move) {
         int start_x = std::get<0>(start_pos);
         int start_y = std::get<1>(start_pos);
         int end_x = std::get<0>(end_pos);
@@ -180,7 +183,7 @@ namespace Chess_API {
         game_board[start_x][start_y] = nullptr;
 
         // Considerations for pawns - if a pawn moved 2 vertically, then the position behind it becomes a en passant valid position
-        if (start_piece_ptr->type == GAME_PIECE_TYPE::PAWN) {
+        if (start_piece_ptr->type == GAME_PIECE_TYPE::PAWN && !simulate_move) {
             int delta_x = end_x - start_x;
 
             // Setting the en passant position accordingly - one space behind where the pawn went
@@ -228,9 +231,88 @@ namespace Chess_API {
         return current_game_state;
     }
 
+    // Prints the provided character the number of times provided - helper function for show board - assumes the CLI has been set to UTF-16 mode
+    void Game::print_wchar_times(const wchar_t wide_char, const int times) const {
+        for (int c = 0; c < times; ++c) {
+            std::wcout << wide_char;
+        }
+    }
+
+    // Prints the board line separator - helper function for show board - assumes the CLI has been set to UTF-16 mode
+    void Game::print_board_line_separator() const {
+        // Printing the line separators - printing space on either side to match the grid fully
+        print_wchar_times(CHESS_BOARD_SPACE_CHAR, (SPACING_BETWEEN_PIECES_FOR_DISPLAY * 2) + 1);
+        print_wchar_times(CHESS_BOARD_LINE_CHAR, 33);
+        print_wchar_times(CHESS_BOARD_SPACE_CHAR, (SPACING_BETWEEN_PIECES_FOR_DISPLAY * 2) + 1);
+        std::wcout << std::endl;
+    }
+
+    // Prints the board letters - helper function for show board - assumes the CLI has been set to UTF-16 mode
+    void Game::print_board_letters() const {
+        print_wchar_times(CHESS_BOARD_SPACE_CHAR, (SPACING_BETWEEN_PIECES_FOR_DISPLAY * 2) + 1);
+        for (int i = 0; i < VALID_CHARS.size(); ++i) {
+            print_wchar_times(CHESS_BOARD_SPACE_CHAR, SPACING_BETWEEN_PIECES_FOR_DISPLAY * 2);
+
+            std::wcout << VALID_CHARS.at(i);
+
+            print_wchar_times(CHESS_BOARD_SPACE_CHAR, SPACING_BETWEEN_PIECES_FOR_DISPLAY);
+        }
+    }
+
     // Prints the game board to std::cout in a friendly manner
     void Game::show_board() const {
-        // TODO - Implement
+        // Preps the CLI for unicode output - platform dependent (Windows)
+        int previous_mode = _setmode(_fileno(stdout), _O_U16TEXT);
+        // First displaying the letters of the board
+        print_board_letters();
+
+        std::wcout << std::endl;
+
+        print_board_line_separator();
+
+        // Displaying each line of the board - for each line count down from board size
+        for (int i = DEFAULT_CHESS_BOARD_SIZE; i > 0; --i) {
+            
+            print_wchar_times(CHESS_BOARD_SPACE_CHAR, SPACING_BETWEEN_PIECES_FOR_DISPLAY);
+            std::wcout << i;
+
+            print_wchar_times(CHESS_BOARD_SPACE_CHAR, SPACING_BETWEEN_PIECES_FOR_DISPLAY);
+            std::wcout << CHESS_BOARD_SEPERATOR_CHAR;
+
+            for (int j = 0; j < DEFAULT_CHESS_BOARD_SIZE; ++j) {
+                game_piece piece = get_location(std::make_pair(i - 1, j));
+
+                print_wchar_times(CHESS_BOARD_SPACE_CHAR, SPACING_BETWEEN_PIECES_FOR_DISPLAY);
+
+                // If this is a valid piece then print the pieces symbol
+                if (validate_game_piece(piece)) {
+                    if (piece.color == GAME_PIECE_COLOR::WHITE) {
+                        std::wcout << WHITE_GAME_PIECE_SYMBOLS.at(piece.type);
+                    } else {
+                        std::wcout << BLACK_GAME_PIECE_SYMBOLS.at(piece.type);
+                    }
+                // Otherwise print a blank
+                } else {
+                    std::wcout << CHESS_BOARD_SPACE_CHAR;
+                }
+
+                print_wchar_times(CHESS_BOARD_SPACE_CHAR, SPACING_BETWEEN_PIECES_FOR_DISPLAY);
+                std::wcout << CHESS_BOARD_SEPERATOR_CHAR;
+            }
+
+            print_wchar_times(CHESS_BOARD_SPACE_CHAR, SPACING_BETWEEN_PIECES_FOR_DISPLAY);
+            std::wcout << i << std::endl;
+            
+            print_board_line_separator();
+        }
+
+        // Display the letters yet again
+        print_board_letters();
+
+        std::wcout << std::endl;
+
+        // Finally resetting the CLI to default mode
+        _setmode(_fileno(stdout), previous_mode);
     }
 
     // Validates that the position is a valid position on the board
@@ -331,15 +413,18 @@ namespace Chess_API {
     // Validates that the move is an acceptable move for a pawn given the current state of the board - no consideration for checks
     bool Game::validate_pawn_move(const game_piece& starting_piece, const game_piece& ending_piece, const std::pair<int, int>& move, const std::pair<int, int>& end_pos) const {
         std::vector<std::pair<int, int>> moveset = PIECE_MOVESETS.at(GAME_PIECE_TYPE::PAWN);
-        // Pawns may only move in a set x-direction, therefore change the moveset for the pawn accordingly
-        if (!starting_piece.pawn_move_positive_x) {
-            // Flip all of the x-type moves to be negative before determining if the move is valid
-            for (int i = 0; i < moveset.size(); ++i) {
-                moveset[i] = std::make_pair(std::get<0>(moveset[i]) * -1, std::get<1>(moveset[i]));
+        // Pawns may only move in a set x-direction, therefore check to ensure the move aligns with this pawns direction
+        if (starting_piece.pawn_move_positive_x) {
+            if (std::get<0>(move) < 0) {
+                return false;
+            }
+        } else {
+            if (std::get<0>(move) > 0) {
+                return false;
             }
         }
 
-        // Based on any changes to moveset - now determine if the move is within the set
+        // Determine if the move is within the set
         auto move_found = std::find(moveset.cbegin(), moveset.cend(), move);
         if (move_found == moveset.cend()) {
             return false;
@@ -435,6 +520,10 @@ namespace Chess_API {
                     --y;
                 }
             }
+
+            // Finally if there are no pieces in the way then this is a valid castle move
+            return true;
+
         // If it isn't a castle attempt then the move is valid
         } else {
             return true;
@@ -503,16 +592,74 @@ namespace Chess_API {
         }
     }
 
+    // Determines if the provided move would place the player in check - only checks the one move and not any moves between it
+    bool Game::simulate_move_for_check(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) {
+        // Setup the variables to simulate playing the incremental move
+        game_piece start_piece = get_location(start_pos);
+        game_piece end_piece = get_location(end_pos);
+        play_move(start_pos, end_pos, true);
+
+        bool return_val = is_in_check();
+
+        // Clearing all potential positions where a piece could still be at before re-adding all of the pieces
+        remove_piece(end_pos);
+        remove_piece(start_pos);
+
+        if (validate_game_piece(start_piece)) {
+            add_piece(start_piece.type, start_piece.color, start_pos);
+        }
+        
+        if (validate_game_piece(end_piece)) {
+            add_piece(end_piece.type, end_piece.color, end_pos);
+        }
+
+        return return_val;
+    }
+
     // Determines if the move described by the start and end positions is a valid move based on chess ruling
     // Notably - this is different from is_legal_move because it ensures the move is not placing the player in check
-    // This is the function that should be used to determine if a move is truly valid
-    bool Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
+    // This is the function that should be used to determine if a move is truly valid before playing the move
+    bool Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) {
         if (!is_legal_move(start_pos, end_pos)) {
             return false;
         }
 
-        // TODO - Implement check for if this move places the player in check
-        return true;
+        // For the move to be valid - it must not place the current player in check
+        // Simulate the move and then determine if the current player is in check
+        game_piece end_piece = get_location(end_pos);
+        game_piece start_piece = get_location(start_pos);
+
+        int delta_x = abs(std::get<0>(end_pos) - std::get<0>(start_pos));
+        int delta_y = abs(std::get<1>(end_pos) - std::get<1>(start_pos));
+
+        // For moves greater than 1 unit we must simulate each move to ensure that no move along the route places the player in check
+        // Knights are the exception - they move straight to their end position
+        if ((delta_x > 1 || delta_y > 1) && start_piece.type != GAME_PIECE_TYPE::KNIGHT) {
+            std::pair<float, float> move_delta = calculate_piece_delta_move(start_piece, start_pos, end_pos);
+            int move_delta_x = round(std::get<0>(move_delta));
+            int move_delta_y = round(std::get<1>(move_delta));
+            int start_x = std::get<0>(start_pos);
+            int start_y = std::get<1>(start_pos);
+            
+            std::pair<int, int> next_move;
+            do {
+                start_x += move_delta_x;
+                start_y += move_delta_y;
+                next_move = std::make_pair(start_x, start_y);
+                
+                // Simulate the move and determine if it places the player in check
+                if (simulate_move_for_check(start_pos, next_move)) {
+                    return false;
+                }
+            } while (next_move != end_pos);
+
+            // Making it out of the do-while loop means that all of the moves are valid and the move can be accomplished
+            return true;
+        
+        // A restricted piece can just make the move - simply ensure that the move won't place the player in check
+        } else {
+            return !simulate_move_for_check(start_pos, end_pos);
+        }
     }
 
     // Swaps which player is the current player
@@ -524,9 +671,109 @@ namespace Chess_API {
         }
     }
 
-    // Determines if the game is currently in check
+    // Determines if the current player is in check
     bool Game::is_in_check() {
-        // TODO - Implement
+        // Get the current players king position
+        std::pair<int, int> king_pos = current_player == player1 ? player1_king_position : player2_king_position;
+
+        // Ensure that the king position has been defined
+        if (std::get<0>(king_pos) == -1 || std::get<1>(king_pos) == -1) {
+            return false;
+        }
+
+        game_piece king = get_location(king_pos);
+
+        // Check every piece around the king - if they are the same color then the king is safe from all pieces except knights
+        std::vector<std::pair<int, int>> area_around_king = {std::make_pair(1, 0), std::make_pair(-1, 0), std::make_pair(0, 1), std::make_pair(0, -1),
+                                                             std::make_pair(1, 1), std::make_pair(-1, 1), std::make_pair(1, -1), std::make_pair(-1, -1)};
+        game_piece piece;
+
+        for(int i = 0; i < area_around_king.size(); ++i) {
+            std::pair<int, int> piece_delta = area_around_king[i];
+            int piece_x = std::get<0>(piece_delta) + std::get<0>(king_pos);
+            int piece_y = std::get<1>(piece_delta) + std::get<1>(king_pos);
+
+            try {
+                piece = get_location(std::make_pair(piece_x, piece_y));
+
+                // If this piece is a different color and a valid game piece then check if that piece can make a legal move to the king
+                if (piece.color != king.color && validate_game_piece(piece)) {
+                    // Temporarily swap the current player to see if the enemy piece can make the legal move
+                    swap_current_player();
+
+                    // If this move is legal then the current player is in check
+                    if(is_legal_move(std::make_pair(piece_x, piece_y), king_pos)) {
+                        swap_current_player();
+                        return true;
+                    // Otherwise move on to the next piece
+                    } else {
+                        swap_current_player();
+                    }
+                // In the case where the square is empty then continue expanding out in that direction until we hit the edge of the board or a valid piece
+                } else if (!validate_game_piece(piece)) {
+                    // Loop to scale up the direction and get the next piece
+                    for(int j = 2; j < DEFAULT_CHESS_BOARD_SIZE; ++j) {
+                        int piece_x = (std::get<0>(piece_delta) * j) + std::get<0>(king_pos);
+                        int piece_y = (std::get<1>(piece_delta) * j) + std::get<1>(king_pos);
+
+                        // If we hit a wall then this will throw an error that we catch below
+                        piece = get_location(std::make_pair(piece_x, piece_y));
+
+                        // If we find a valid piece check if its the same color first
+                        if (validate_game_piece(piece)) {
+                            // This direction is safe, move on to the next one
+                            if (piece.color == king.color) {
+                                break;
+                            // Otherwise determine if the piece has a legal move to the king
+                            } else {
+                                // Temporarily swap the current player to see if the enemy piece can make the legal move
+                                swap_current_player();
+
+                                // If this move is legal then the current player is in check
+                                if(is_legal_move(std::make_pair(piece_x, piece_y), king_pos)) {
+                                    swap_current_player();
+                                    return true;
+                                // Otherwise this direction is safe, move on to the next direction
+                                } else {
+                                    swap_current_player();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+            // Expected error if this exceeds the bounds - this position doesn't matter since the king is next to a wall
+            } catch (std::runtime_error) {
+                continue;
+            }
+
+        }
+
+        // Check for a knight of a different color in every knight moveset away from the king to ensure there isn't any knights there
+        std::vector<std::pair<int, int>> knight_moveset = PIECE_MOVESETS.at(GAME_PIECE_TYPE::KNIGHT);
+
+        for (int i = 0; i < knight_moveset.size(); ++i) {
+            std::pair<int, int> piece_delta = knight_moveset[i];
+            int piece_x = std::get<0>(piece_delta) + std::get<0>(king_pos);
+            int piece_y = std::get<1>(piece_delta) + std::get<1>(king_pos);
+
+            try {
+                piece = get_location(std::make_pair(piece_x, piece_y));
+                
+                // If the piece is a different colored knight then the current player is in check
+                if (piece.color != king.color && validate_game_piece(piece) && piece.type == GAME_PIECE_TYPE::KNIGHT) {
+                    return true;
+                }
+
+            // Expected error if we hit a wall
+            } catch (std::runtime_error) {
+                continue;
+            }
+
+        }
+
+        // Finally if all of the above did not return anything then the current player is not in check
         return false;
     }
 

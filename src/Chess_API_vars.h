@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <map>
 
 namespace Chess_API {
     const std::string VALID_CHARS = "abcdefgh";                                                             // Valid characters referring to the places on the chess board
@@ -83,22 +84,32 @@ namespace Chess_API {
     };
 
     // Symbols for each game piece when printing to the console
-    const std::unordered_map<GAME_PIECE_TYPE, wchar_t> BLACK_GAME_PIECE_SYMBOLS = {
-        {PAWN, '\u265F'},
-        {ROOK, '\u265C'},
-        {KNIGHT, '\u265E'},
-        {BISHOP, '\u265D'},
-        {KING, '\u265A'},
-        {QUEEN, '\u265B'}
+    const std::unordered_map<GAME_PIECE_TYPE, wchar_t> GAME_PIECE_SYMBOLS = {
+        {PAWN, *L"\u2659"},
+        {ROOK, *L"\u2656"},
+        {KNIGHT, *L"\u2658"},
+        {BISHOP, *L"\u2657"},
+        {KING, *L"\u2654"},
+        {QUEEN, *L"\u2655"}
     };
 
-    const std::unordered_map<GAME_PIECE_TYPE, wchar_t> WHITE_GAME_PIECE_SYMBOLS = {
-        {PAWN, '\u2659'},
-        {ROOK, '\u2656'},
-        {KNIGHT, '\u2658'},
-        {BISHOP, '\u2657'},
-        {KING, '\u2654'},
-        {QUEEN, '\u2655'}
+    // Default positions for each piece in a game of chess
+    const std::map<GAME_PIECE_TYPE, std::vector<std::pair<int, int>>> WHITE_DEFAULT_GAME_PIECE_POS = {
+        {PAWN, {std::make_pair(1, 0), std::make_pair(1, 1), std::make_pair(1, 2), std::make_pair(1, 3), std::make_pair(1, 4), std::make_pair(1, 5), std::make_pair(1, 6), std::make_pair(1, 7)}},
+        {ROOK, {std::make_pair(0, 0), std::make_pair(0, 7)}},
+        {KNIGHT, {std::make_pair(0, 1), std::make_pair(0, 6)}},
+        {BISHOP, {std::make_pair(0, 2), std::make_pair(0, 5)}},
+        {QUEEN, {std::make_pair(0, 3)}},
+        {KING, {std::make_pair(0, 4)}}
+    };
+
+    const std::map<GAME_PIECE_TYPE, std::vector<std::pair<int, int>>> BLACK_DEFAULT_GAME_PIECE_POS = {
+        {PAWN, {std::make_pair(6, 0), std::make_pair(6, 1), std::make_pair(6, 2), std::make_pair(6, 3), std::make_pair(6, 4), std::make_pair(6, 5), std::make_pair(6, 6), std::make_pair(6, 7)}},
+        {ROOK, {std::make_pair(7, 0), std::make_pair(7, 7)}},
+        {KNIGHT, {std::make_pair(7, 1), std::make_pair(7, 6)}},
+        {BISHOP, {std::make_pair(7, 2), std::make_pair(7, 5)}},
+        {QUEEN, {std::make_pair(7, 3)}},
+        {KING, {std::make_pair(7, 4)}}
     };
 
 }

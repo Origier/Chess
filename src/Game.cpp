@@ -115,6 +115,26 @@ namespace Chess_API {
         game_board[x][y] = new game_piece(type_in, color_in);
     }
 
+    // Sets up the game with the default chess board state
+    void Game::setup_default_board_state() {
+        
+        // Placing white pieces
+        for (auto white_it = WHITE_DEFAULT_GAME_PIECE_POS.begin(); white_it != WHITE_DEFAULT_GAME_PIECE_POS.end(); ++white_it) {
+            std::vector<std::pair<int, int>> piece_locations = white_it->second;
+            for (int i = 0; i < piece_locations.size(); ++i) {
+                add_piece(white_it->first, GAME_PIECE_COLOR::WHITE, piece_locations.at(i));
+            }
+        }
+        
+        // Placing black pieces
+        for (auto black_it = BLACK_DEFAULT_GAME_PIECE_POS.begin(); black_it != BLACK_DEFAULT_GAME_PIECE_POS.end(); ++black_it) {
+            std::vector<std::pair<int, int>> piece_locations = black_it->second;
+            for (int i = 0; i < piece_locations.size(); ++i) {
+                add_piece(black_it->first, GAME_PIECE_COLOR::BLACK, piece_locations.at(i));
+            }
+        }
+    }
+
     // Returns the game_piece pointer for the provided location
     // Throws an error if attempting to pull a location beyond the scope of the board
     // Simply returns an invalid piece if there isn't anything there
@@ -199,10 +219,6 @@ namespace Chess_API {
             en_passant_position = std::make_pair(-1, -1);
         }
 
-
-
-
-
         // TODO: Implement captures for en passant and implement castling move and detection
     }
 
@@ -263,6 +279,7 @@ namespace Chess_API {
     void Game::show_board() const {
         // Preps the CLI for unicode output - platform dependent (Windows)
         int previous_mode = _setmode(_fileno(stdout), _O_U16TEXT);
+        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
         // First displaying the letters of the board
         print_board_letters();
 
@@ -287,10 +304,16 @@ namespace Chess_API {
                 // If this is a valid piece then print the pieces symbol
                 if (validate_game_piece(piece)) {
                     if (piece.color == GAME_PIECE_COLOR::WHITE) {
-                        std::wcout << WHITE_GAME_PIECE_SYMBOLS.at(piece.type);
+                        // Intense black shapes with white background
+                        SetConsoleTextAttribute(hStdout, BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | FOREGROUND_INTENSITY);
+                        std::wcout << GAME_PIECE_SYMBOLS.at(piece.type);
                     } else {
-                        std::wcout << BLACK_GAME_PIECE_SYMBOLS.at(piece.type);
+                        // Intense white shapes with black background
+                        SetConsoleTextAttribute(hStdout, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY);
+                        std::wcout << GAME_PIECE_SYMBOLS.at(piece.type);
                     }
+                    // Reset to default
+                    SetConsoleTextAttribute(hStdout, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
                 // Otherwise print a blank
                 } else {
                     std::wcout << CHESS_BOARD_SPACE_CHAR;

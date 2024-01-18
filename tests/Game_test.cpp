@@ -923,6 +923,7 @@ void test_display() {
     shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
     shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
     Game new_game(player1, player2);
+    new_game.setup_default_board_state();
     new_game.show_board();
 }
 

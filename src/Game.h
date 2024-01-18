@@ -8,6 +8,7 @@
 #include <iostream>         // std::cout, std::endl
 #include <io.h>             // _setmode
 #include <fcntl.h>          // _O_U16TEXT
+#include <Windows.h>        // GetStdHandle
 
 #include "Player.h"
 #include "Chess_API_vars.h"
@@ -68,6 +69,9 @@ namespace Chess_API {
         // Adds the given piece type to the game board at the provided location
         // Throws an error if attempting to place the piece outside the bounds
         void add_piece(const GAME_PIECE_TYPE type_in, const GAME_PIECE_COLOR color_in, const std::pair<int, int>& location);
+
+        // Sets up the game with the default chess board state
+        void setup_default_board_state();
 
         // Returns a game_piece copy for this location
         // Throws an error if attempting to pull a location beyond the scope of the board

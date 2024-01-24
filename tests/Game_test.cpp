@@ -3,6 +3,38 @@
 using namespace Chess_API;
 using namespace std;
 
+// Helper test function - determines if a move is valid and then returns useful information regarding the validity
+std::pair<bool, std::string> check_move_error_codes(Game& game_in, const std::pair<int, int> start_pos, const std::pair<int, int> end_pos) {
+    Game::MOVE_ERROR_CODE error_code = game_in.is_valid_move(start_pos, end_pos);
+    if (error_code == Game::MOVE_ERROR_CODE::VALID_MOVE) {
+        return std::make_pair(true, "Valid move");
+    } else {
+        if (error_code == Game::MOVE_ERROR_CODE::BLOCKED_MOVE) {
+            return std::make_pair(false, "There is a piece of the same color in the way");
+        }
+
+        if (error_code == Game::MOVE_ERROR_CODE::CHECK_MOVE) {
+            return std::make_pair(false, "That move will put the current player in check");
+        }
+
+        if (error_code == Game::MOVE_ERROR_CODE::ILLEGAL_MOVE) {
+            return std::make_pair(false, "That piece isn't allowed to make that move");
+        }
+
+        if (error_code == Game::MOVE_ERROR_CODE::NO_PIECE) {
+            return std::make_pair(false, "There is no piece at the starting position");
+        }
+
+        if (error_code == Game::MOVE_ERROR_CODE::OUT_OF_BOUNDS_MOVE) {
+            return std::make_pair(false, "That move is outside the bounds of the board");
+        }
+
+        if (error_code == Game::MOVE_ERROR_CODE::WRONG_PLAYER) {
+            return std::make_pair(false, "That isn't the current players piece");
+        }
+    }
+}
+
 // Tests creating a basic game object and ensuring there isn't any memory leaks issues - returns true if successful
 bool test_create_game() {
     try {
@@ -702,219 +734,1029 @@ bool test_copy_constructor_removal() {
     }
 }
 
-// Tests that is_valid_move returns false if there is no starting piece
-bool test_is_valid_move_start_piece() {
-    int x = rand() % DEFAULT_CHESS_BOARD_SIZE;
-    int y = rand() % DEFAULT_CHESS_BOARD_SIZE;
-
+// Tests all moves for pawns
+bool test_pawn_valid_moves() {
     shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
     shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
     Game new_game(player1, player2);
+    new_game.setup_default_board_state();
 
-    if (new_game.is_valid_move(make_pair(x, y), make_pair(x, y))) {
-        return false;
+    // Test D2 - D3 - simple case single move
+    std::pair<int, int> player_move_start = std::make_pair(1, 3);
+    std::pair<int, int> player_move_end = std::make_pair(2, 3);
+    
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The first pawn move generated an unexpected error code: " + error_values.second);
     } else {
-        return true;
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
     }
-}
 
-// Tests that is_valid_move returns false if there is a piece on the end position of the same color
-bool test_is_valid_move_end_piece() {
-    int x_start = rand() % DEFAULT_CHESS_BOARD_SIZE;
-    int y_start = rand() % DEFAULT_CHESS_BOARD_SIZE;
-
-    int x_end = rand() % DEFAULT_CHESS_BOARD_SIZE;
-    int y_end = rand() % DEFAULT_CHESS_BOARD_SIZE;
-
-    // Casting a random piece type
-    GAME_PIECE_TYPE type = static_cast<GAME_PIECE_TYPE>(rand() % GAME_PIECE_TYPE::TYPEMAX + 1);
-    GAME_PIECE_COLOR color = GAME_PIECE_COLOR::BLACK;
-
-    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
-    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
-    Game new_game(player1, player2);
-
-    new_game.add_piece(type, color, make_pair(x_start, y_start));
-    new_game.add_piece(type, color, make_pair(x_end, y_end));
-
-    if (new_game.is_valid_move(make_pair(x_start, y_start), make_pair(x_end, y_end))) {
-        return false;
+    // Test D3 - D4 - single move after a first move
+    player_move_start = std::make_pair(2, 3);
+    player_move_end = std::make_pair(3, 3);
+    
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The second pawn move generated an unexpected error code: " + error_values.second);
     } else {
-        return true;
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
     }
-}
 
-// Tests legal moves for a Queen - the queen acts as a valid test for all unrestricted pieces
-bool test_is_legal_move_queen() {
-    // Hardcoded for discrete testing purposes
-    int x_start = 4;
-    int y_start = 4;
+    // Test C2 - C4 - double move on first move
+    player_move_start = std::make_pair(1, 2);
+    player_move_end = std::make_pair(3, 2);
     
-    // Moving one space diagonally
-    int x_end1 = 5;
-    int y_end1 = 5;
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The third pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
 
-    int x_end2 = 3;
-    int y_end2 = 5;
-
-    int x_end3 = 5;
-    int y_end3 = 3;
+    // Test C4 - C5 - single move after a double move - setup for en passant test
+    player_move_start = std::make_pair(3, 2);
+    player_move_end = std::make_pair(4, 2);
     
-    int x_end4 = 3;
-    int y_end4 = 3;
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fourth pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
 
-    // Moving one space vertically
-    int x_end5 = 5;
-    int y_end5 = 4;
+    // Setup for capture tests - tests swapping current player to ensure both colors may play pawns
+    new_game.swap_current_player();
 
-    int x_end6 = 3;
-    int y_end6 = 4;
+    // D7 - D5 - setup for en passant from white
+    player_move_start = std::make_pair(6, 3);
+    player_move_end = std::make_pair(4, 3);
     
-    // Moving one space horizontally
-    int x_end7 = 4;
-    int y_end7 = 5;
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fifth pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
 
-    int x_end8 = 4;
-    int y_end8 = 3;
+    new_game.swap_current_player();
 
-    // Moving many spaces diagonally
-    int x_end9 = 7;
-    int y_end9 = 7;
-
-    int x_end10 = 1;
-    int y_end10 = 7;
-
-    int x_end11 = 7;
-    int y_end11 = 1;
+    // Test C5 - D6 - en passant capture on D5
+    player_move_start = std::make_pair(4, 2);
+    player_move_end = std::make_pair(5, 3);
     
-    int x_end12 = 1;
-    int y_end12 = 1;
-
-    // Moving many spaces vertically
-    int x_end13 = 7;
-    int y_end13 = 4;
-
-    int x_end14 = 1;
-    int y_end14 = 4;
-
-    // Moving many spaces horizontally
-    int x_end15 = 4;
-    int y_end15 = 7;
-
-    int x_end16 = 4;
-    int y_end16 = 1;
-
-    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
-    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
-    Game new_game(player1, player2);
-
-    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::WHITE, make_pair(x_start, y_start));
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
-        return false;
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The sixth pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
     }
 
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
-        return false;
+    // Test D6 - E7 - normal pawn capture
+    player_move_start = std::make_pair(5, 3);
+    player_move_end = std::make_pair(6, 4);
+    
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The seventh pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
     }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end4, y_end4))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end5, y_end5))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end6, y_end6))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end7, y_end7))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end8, y_end8))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end9, y_end9))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end10, y_end10))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end11, y_end11))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end12, y_end12))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end13, y_end13))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end14, y_end14))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end15, y_end15))) {
-        return false;
-    }
-
-    if(!new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end16, y_end16))) {
-        return false;
-    }
-
-    // After testing each hardcoded positions - return true if all passed
+    
+    // Full test complete - return true for passing all seven tested moves
     return true;
 }
 
-// Tests illegal moves for a Queen - the queen acts as a valid test for all unrestricted pieces
-bool test_is_illegal_move_queen() {
-    // Hardcoded for discrete testing purposes
-    int x_start = 0;
-    int y_start = 0;
-    
-    // Moving one space higher than diagonal
-    int x_end1 = 6;
-    int y_end1 = 5;
-
-    // Moving very far horizontal with slight vertical
-    int x_end2 = 1;
-    int y_end2 = 7;
-
-    // Move like a knight
-    int x_end3 = 2;
-    int y_end3 = 1;
-    
+// Tests all moves for pawns that would be invalid
+bool test_pawn_invalid_moves() {
     shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
     shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
     Game new_game(player1, player2);
+    new_game.setup_default_board_state();
 
-    new_game.add_piece(GAME_PIECE_TYPE::QUEEN, GAME_PIECE_COLOR::WHITE, make_pair(x_start, y_start));
+    // Test D2 - D3 - setup to attempt moving backwards
+    std::pair<int, int> player_move_start = std::make_pair(1, 3);
+    std::pair<int, int> player_move_end = std::make_pair(2, 3);
+    
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The first pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
 
-    if (new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end1, y_end1))) {
+    // Testing moving backwards
+    player_move_start = std::make_pair(2, 3);
+    player_move_end = std::make_pair(1, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        false;
+    }
+
+    // Testing a double move after the first move
+    player_move_start = std::make_pair(2, 3);
+    player_move_end = std::make_pair(4, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        false;
+    }
+
+    // Testing a diagonal move without any unit to capture and no valid en passant location
+    player_move_start = std::make_pair(2, 3);
+    player_move_end = std::make_pair(3, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        false;
+    }
+
+    // Switching to the other player to test a couple more moves
+    new_game.swap_current_player();
+
+    player_move_start = std::make_pair(6, 7);
+    player_move_end = std::make_pair(4, 7);
+    
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The second pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Testing moving backwards for this player
+    player_move_start = std::make_pair(4, 7);
+    player_move_end = std::make_pair(5, 7);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        false;
+    }
+
+    // Testing moving a second double move after the first
+    player_move_start = std::make_pair(4, 7);
+    player_move_end = std::make_pair(2, 7);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        false;
+    }
+
+    // Testing moving out of bounds
+    player_move_start = std::make_pair(4, 7);
+    player_move_end = std::make_pair(5, 8);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        false;
+    }
+
+    // Setup for final test
+    player_move_start = std::make_pair(4, 7);
+    player_move_end = std::make_pair(3, 7);
+    
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The third pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    player_move_start = std::make_pair(3, 7);
+    player_move_end = std::make_pair(2, 7);
+    
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The third pawn move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Testing moving forward onto a piece
+    player_move_start = std::make_pair(2, 7);
+    player_move_end = std::make_pair(1, 7);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        false;
+    }
+
+    return true;
+}
+
+// Tests all moves for kings
+bool test_king_valid_moves() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Moving other pieces out of the way for the king
+    // D2 - D4
+    std::pair<int, int> player_move_start = std::make_pair(1, 3);
+    std::pair<int, int> player_move_end = std::make_pair(3, 3);
+
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The first move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // C1 - F4
+    player_move_start = std::make_pair(0, 2);
+    player_move_end = std::make_pair(3, 5);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The second move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // B1 - C3
+    player_move_start = std::make_pair(0, 1);
+    player_move_end = std::make_pair(2, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The third move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // D1 - D2
+    player_move_start = std::make_pair(0, 3);
+    player_move_end = std::make_pair(1, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fourth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+
+    // Testing Castle move to the left
+    player_move_start = std::make_pair(0, 4);
+    player_move_end = std::make_pair(0, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fifth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+
+    // Swapping players to test the other side
+    new_game.swap_current_player();
+
+    // E7 - E5
+    player_move_start = std::make_pair(6, 4);
+    player_move_end = std::make_pair(4, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The sixth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // F8 - C5
+    player_move_start = std::make_pair(7, 5);
+    player_move_end = std::make_pair(4, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The seventh move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // G8 - H6
+    player_move_start = std::make_pair(7, 6);
+    player_move_end = std::make_pair(5, 7);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The eigth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Testing Castle move to the right
+    player_move_start = std::make_pair(7, 4);
+    player_move_end = std::make_pair(7, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The nineth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Setup for further moves
+    // G7 - G5
+    player_move_start = std::make_pair(6, 6);
+    player_move_end = std::make_pair(4, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The tenth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single verticle move negative x
+    player_move_start = std::make_pair(7, 6);
+    player_move_end = std::make_pair(6, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The eleventh move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single diagonal move 
+    player_move_start = std::make_pair(6, 6);
+    player_move_end = std::make_pair(5, 5);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The twelth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single horizontal move 
+    player_move_start = std::make_pair(5, 5);
+    player_move_end = std::make_pair(5, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The thirteenth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single horizontal move back 
+    player_move_start = std::make_pair(5, 4);
+    player_move_end = std::make_pair(5, 5);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fourteenth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single reverse diagonal move 
+    player_move_start = std::make_pair(5, 5);
+    player_move_end = std::make_pair(6, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fifteenth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single verticle move positive x
+    player_move_start = std::make_pair(6, 6);
+    player_move_end = std::make_pair(7, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The sixteenth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Having tested both castles and a move in each direction and back this concludes testing valid moves for the king
+    return true;
+}
+
+// Tests all moves for kings that would be invalid
+bool test_king_invalid_moves() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Testing if the king can move onto another piece
+    std::pair<int, int> player_move_start = std::make_pair(0, 4);
+    std::pair<int, int> player_move_end = std::make_pair(1, 4);
+
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
         return false;
     }
 
-    if (new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end2, y_end2))) {
+    // Moving pieces out of the way
+    // D2 - D4
+    player_move_start = std::make_pair(1, 3);
+    player_move_end = std::make_pair(3, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The first move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // C1 - F4
+    player_move_start = std::make_pair(0, 2);
+    player_move_end = std::make_pair(3, 5);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The second move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+
+    // B1 - C3
+    player_move_start = std::make_pair(0, 1);
+    player_move_end = std::make_pair(2, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The third move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // D1 - D2
+    player_move_start = std::make_pair(0, 3);
+    player_move_end = std::make_pair(1, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fourth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+
+    // Testing moving the king once before attempting to castle
+    player_move_start = std::make_pair(0, 4);
+    player_move_end = std::make_pair(0, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fifth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+    
+    player_move_start = std::make_pair(0, 3);
+    player_move_end = std::make_pair(0, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The sixth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    player_move_start = std::make_pair(0, 4);
+    player_move_end = std::make_pair(0, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
         return false;
     }
 
-    if (new_game.is_legal_move(make_pair(x_start, y_start), make_pair(x_end3, y_end3))) {
+
+    // Swapping players to test the other side
+    new_game.swap_current_player();
+
+    // E7 - E5
+    player_move_start = std::make_pair(6, 4);
+    player_move_end = std::make_pair(4, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The seventh move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // F8 - C5
+    player_move_start = std::make_pair(7, 5);
+    player_move_end = std::make_pair(4, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The eigth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // G8 - H6
+    player_move_start = std::make_pair(7, 6);
+    player_move_end = std::make_pair(5, 7);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The nineth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+
+    // Testing moving the rook once before attempting to castle
+    player_move_start = std::make_pair(7, 7);
+    player_move_end = std::make_pair(7, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The tenth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    player_move_start = std::make_pair(7, 6);
+    player_move_end = std::make_pair(7, 7);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The eleventh move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    player_move_start = std::make_pair(7, 4);
+    player_move_end = std::make_pair(7, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
         return false;
     }
 
-    // After testing each hardcoded positions - return true if all passed
+    // Testing that the king cannot more than one space in any direction
+    player_move_start = std::make_pair(7, 4);
+    player_move_end = std::make_pair(5, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        return false;
+    }
+
+    return true;
+}
+
+// Tests all moves for the knight - acts as test completeness for restricted pieces
+bool test_knight_valid_moves() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Test first style move B1 - C3 while jumping over allies
+    std::pair<int, int> player_move_start = std::make_pair(0, 1);
+    std::pair<int, int> player_move_end = std::make_pair(2, 2);
+
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The first move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    } 
+
+    // Test second style move C3 - E4
+    player_move_start = std::make_pair(2, 2);
+    player_move_end = std::make_pair(3, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The second move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    } 
+
+    // E4 - D6
+    player_move_start = std::make_pair(3, 4);
+    player_move_end = std::make_pair(5, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The third move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    } 
+
+    // Test Capture - leaping over enemy units
+    player_move_start = std::make_pair(5, 3);
+    player_move_end = std::make_pair(7, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The forth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    } 
+
+    return true;
+}
+
+// Tests all moves for the knight that would be invalid
+bool test_knight_invalid_moves() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Test landing on an ally
+    std::pair<int, int> player_move_start = std::make_pair(0, 1);
+    std::pair<int, int> player_move_end = std::make_pair(1, 3);
+
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if(error_values.first != false) {
+        return false;
+    }
+
+    // Test jumping out of bounds
+    player_move_start = std::make_pair(0, 1);
+    player_move_end = std::make_pair(1, -1);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if(error_values.first != false) {
+        return false;
+    }
+
+    // Test a non-knight move
+    player_move_start = std::make_pair(0, 1);
+    player_move_end = std::make_pair(4, 1);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if(error_values.first != false) {
+        return false;
+    }
+
+    return true;
+}
+
+// Tests all moves for the queen - acts as test completeness for unrestricted pieces
+bool test_queen_valid_moves() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Setup for the queen to move
+    std::pair<int, int> player_move_start = std::make_pair(1, 3);
+    std::pair<int, int> player_move_end = std::make_pair(2, 3);
+
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The first move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    } 
+    
+    // Test single move verticle
+    player_move_start = std::make_pair(0, 3);
+    player_move_end = std::make_pair(1, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The second move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    } 
+
+    // Test multi-move diagonal
+    player_move_start = std::make_pair(1, 3);
+    player_move_end = std::make_pair(5, 7);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The third move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    } 
+
+    // Test single-move diagonal / capture
+    player_move_start = std::make_pair(5, 7);
+    player_move_end = std::make_pair(6, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The forth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test multi-move verticle
+    player_move_start = std::make_pair(6, 6);
+    player_move_end = std::make_pair(2, 6);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The fifth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test multi-move horizontal
+    player_move_start = std::make_pair(2, 6);
+    player_move_end = std::make_pair(2, 0);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The sixth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single-move horizontal
+    player_move_start = std::make_pair(2, 0);
+    player_move_end = std::make_pair(2, 1);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The seventh move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test multi-move verticle / capture
+    player_move_start = std::make_pair(2, 1);
+    player_move_end = std::make_pair(6, 1);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The eighth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    // Test single-move horizontal / capture
+    player_move_start = std::make_pair(6, 1);
+    player_move_end = std::make_pair(6, 2);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != true) {
+        throw std::runtime_error("The eighth move generated an unexpected error code: " + error_values.second);
+    } else {
+        try {
+            new_game.play_move(player_move_start, player_move_end);
+        } catch (exception e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    return true;
+}
+
+// Tests all moves for the queen that would be invalid
+bool test_queen_invalid_moves() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Test the queen moving into an ally space
+    std::pair<int, int> player_move_start = std::make_pair(0, 3);
+    std::pair<int, int> player_move_end = std::make_pair(1, 3);
+
+    std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        return false;
+    }
+
+    // Test the queen jumping over the ally
+    player_move_start = std::make_pair(0, 3);
+    player_move_end = std::make_pair(2, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        return false;
+    }
+
+    // Test the queen jumping going out of bounds
+    player_move_start = std::make_pair(0, 3);
+    player_move_end = std::make_pair(-1, 3);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        return false;
+    }
+
+    // Test the queen making an erroneous move 
+    player_move_start = std::make_pair(0, 3);
+    player_move_end = std::make_pair(2, 4);
+
+    error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
+    if (error_values.first != false) {
+        return false;
+    }
+
     return true;
 }
 
@@ -924,6 +1766,217 @@ void test_display() {
     shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
     Game new_game(player1, player2);
     new_game.setup_default_board_state();
+    new_game.show_board();
+}
+
+// Use only when messing with play functions - useful for simulating games without needing the higher level API
+void test_simulating_play() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+    new_game.show_board();
+
+    // Player 1's turn
+    std::pair<int, int> player_1_move_start = std::make_pair(1, 3);
+    std::pair<int, int> player_1_move_end = std::make_pair(3, 3);
+
+    // Player 2's turn
+    std::pair<int, int> player_2_move_start = std::make_pair(6, 4);
+    std::pair<int, int> player_2_move_end = std::make_pair(4, 4);
+
+    // D2 - D4
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+    new_game.swap_current_player();
+
+    // E7 - E5
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.show_board();
+
+
+
+    new_game.swap_current_player();
+
+    player_1_move_start = std::make_pair(3, 3);
+    player_1_move_end = std::make_pair(4, 4);
+
+    // Player 1 capture from D4 - E5
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+
+
+    new_game.swap_current_player();
+
+    player_2_move_start = std::make_pair(7, 4);
+    player_2_move_end = std::make_pair(6, 4);
+
+    // E8 - E7
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.show_board();
+
+
+
+    new_game.swap_current_player();
+
+    player_1_move_start = std::make_pair(0, 3);
+    player_1_move_end = std::make_pair(1, 3);
+
+    // Player 1 capture from D1 - D2
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+
+
+    new_game.swap_current_player();
+
+    player_2_move_start = std::make_pair(6, 3);
+    player_2_move_end = std::make_pair(4, 3);
+
+    // D7 - D5
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.show_board();
+
+
+
+    new_game.swap_current_player();
+
+    player_1_move_start = std::make_pair(4, 4);
+    player_1_move_end = std::make_pair(5, 3);
+
+    // Player 1 en passant capture E5 - D6, capturing D5
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+
+
+    new_game.swap_current_player();
+
+    player_2_move_start = std::make_pair(7, 3);
+    player_2_move_end = std::make_pair(5, 3);
+
+    // Player 2 capture D8 - D6
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.show_board();
+
+
+
+    new_game.swap_current_player();
+
+    player_1_move_start = std::make_pair(1, 3);
+    player_1_move_end = std::make_pair(3, 1);
+
+    // D2 - B4
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+
+    new_game.swap_current_player();
+
+    player_2_move_start = std::make_pair(5, 3);
+    player_2_move_end = std::make_pair(3, 1);
+
+    // Player 2 capture D6 - B4
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.show_board();
+
+
+    new_game.swap_current_player();
+
+    player_1_move_start = std::make_pair(0, 1);
+    player_1_move_end = std::make_pair(2, 2);
+
+    // B1 - C3
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+
+    new_game.swap_current_player();
+
+    player_2_move_start = std::make_pair(7, 2);
+    player_2_move_end = std::make_pair(4, 5);
+
+    // Player 2 capture C8 - F5
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.show_board();
+
+
+    new_game.swap_current_player();
+
+    player_1_move_start = std::make_pair(0, 2);
+    player_1_move_end = std::make_pair(3, 5);
+
+    // C1 - F4
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+
+    new_game.swap_current_player();
+
+    player_2_move_start = std::make_pair(6, 2);
+    player_2_move_end = std::make_pair(4, 2);
+
+    // Player 2 capture C7 - C5
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.show_board();
+
+
+    new_game.swap_current_player();
+
+    player_1_move_start = std::make_pair(0, 4);
+    player_1_move_end = std::make_pair(0, 2);
+
+    // Player 1 Castle left - E1 - C1
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.show_board();
+
+
+    new_game.swap_current_player();
+
+    player_2_move_start = std::make_pair(6, 5);
+    player_2_move_end = std::make_pair(4, 5);
+
+    // Player 2 capture C7 - C5
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
     new_game.show_board();
 }
 
@@ -1113,7 +2166,6 @@ int run_game_tests() {
     }
 
     
-
     // Testing the copy constructor to ensure separation of data
     try {
         if (!test_copy_constructor_removal()) {
@@ -1126,54 +2178,104 @@ int run_game_tests() {
     }
 
 
-    // Testing is_valid_move for starting piece required
+    // Testing the pawns moveset to ensure they can make valid moves
     try {
-        if (!test_is_valid_move_start_piece()) {
-            cout << "   ERROR: The game does not require a starting piece for a move to be valid" << endl;
+        if (!test_pawn_valid_moves()) {
+            cout << "   ERROR: The pawn was unable to utilize some of its valid moves" << endl;
             ++errors;
         }
     } catch(exception e) {
-        cout << "   ERROR: test_is_valid_move_start_piece threw an error: " << e.what() << endl;
+        cout << "   ERROR: test_pawn_valid_moves threw an error: " << e.what() << endl;
         ++errors;
     }
 
 
-    // Testing is_valid_move for ending piece being not the same color
+    // Testing the pawns moveset for invalid moves to ensure they cannot to illegal movess
     try {
-        if (!test_is_valid_move_end_piece()) {
-            cout << "   ERROR: The game does not require an ending piece to be a different color for a valid move" << endl;
+        if (!test_pawn_invalid_moves()) {
+            cout << "   ERROR: The pawn was able to perform illegal moves" << endl;
             ++errors;
         }
     } catch(exception e) {
-        cout << "   ERROR: test_is_valid_move_end_piece threw an error: " << e.what() << endl;
+        cout << "   ERROR: test_pawn_invalid_moves threw an error: " << e.what() << endl;
         ++errors;
     }
 
 
-    // Testing is_legal_move for legal queen moves
+    // Testing the kings moveset for valid moves
     try {
-        if (!test_is_legal_move_queen()) {
-            cout << "   ERROR: The game does not correctly register correct moves for the queen" << endl;
+        if (!test_king_valid_moves()) {
+            cout << "   ERROR: The king was unable to utilize some of its valid moves" << endl;
             ++errors;
         }
     } catch(exception e) {
-        cout << "   ERROR: test_is_legal_move_queen threw an error: " << e.what() << endl;
+        cout << "   ERROR: test_king_valid_moves threw an error: " << e.what() << endl;
         ++errors;
     }
 
-    
-    // Testing is_legal_move for illegal queen moves
+
+    // Testing the kings moveset for invalid moves to ensure they cannot to illegal movess
     try {
-        if (!test_is_illegal_move_queen()) {
-            cout << "   ERROR: The game does not correctly register incorrect moves for the queen" << endl;
+        if (!test_king_invalid_moves()) {
+            cout << "   ERROR: The king was able to perform illegal moves" << endl;
             ++errors;
         }
     } catch(exception e) {
-        cout << "   ERROR: test_is_illegal_move_queen threw an error: " << e.what() << endl;
+        cout << "   ERROR: test_king_invalid_moves threw an error: " << e.what() << endl;
         ++errors;
     }
 
-    // Temporary test to see the display
+
+    // Testing the knights moveset for valid moves - acts as test completeness for restricted pieces
+    try {
+        if (!test_knight_valid_moves()) {
+            cout << "   ERROR: The knight was unable to utilize some of its valid moves" << endl;
+            ++errors;
+        }
+    } catch(exception e) {
+        cout << "   ERROR: test_knight_valid_moves threw an error: " << e.what() << endl;
+        ++errors;
+    }
+
+
+    // Testing the knights moveset for invalid moves - acts as test completeness for restricted pieces
+    try {
+        if (!test_knight_invalid_moves()) {
+            cout << "   ERROR: The knight was able to perform illegal moves" << endl;
+            ++errors;
+        }
+    } catch(exception e) {
+        cout << "   ERROR: test_knight_invalid_moves threw an error: " << e.what() << endl;
+        ++errors;
+    }
+
+
+    // Testing the queens moveset for valid moves - acts as test completeness for unrestricted pieces
+    try {
+        if (!test_queen_valid_moves()) {
+            cout << "   ERROR: The queen was unable to utilize some of its moveset" << endl;
+            ++errors;
+        }
+    } catch(exception e) {
+        cout << "   ERROR: test_queen_valid_moves threw an error: " << e.what() << endl;
+        ++errors;
+    }
+
+
+    // Testing the queens moveset for invalid moves - acts as test completeness for unrestricted pieces
+    try {
+        if (!test_queen_valid_moves()) {
+            cout << "   ERROR: The queen was able to perform illegal moves" << endl;
+            ++errors;
+        }
+    } catch(exception e) {
+        cout << "   ERROR: test_queen_invalid_moves threw an error: " << e.what() << endl;
+        ++errors;
+    }
+
+
+    // Temporary test to simulate play
+    // test_simulating_play();
     test_display();
 
 

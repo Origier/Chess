@@ -97,8 +97,8 @@ namespace Chess_API {
     // Adds the given piece type to the game board at the provided location
     // Throws an error if attempting to place the piece outside the bounds
     void Game::add_piece(const GAME_PIECE_TYPE type_in, const GAME_PIECE_COLOR color_in, const std::pair<int, int>& location) {
-        int x = std::get<0>(location);
-        int y = std::get<1>(location);
+        int x = location.first;
+        int y = location.second;
 
         if (!validate_position(location)) {
             throw std::runtime_error("You cannot place a piece outside the bounds of the board");
@@ -133,14 +133,18 @@ namespace Chess_API {
                 add_piece(black_it->first, GAME_PIECE_COLOR::BLACK, piece_locations.at(i));
             }
         }
+
+        // Setting up players king positions
+        player1_king_position = WHITE_DEFAULT_GAME_PIECE_POS.at(KING).at(0);
+        player2_king_position = BLACK_DEFAULT_GAME_PIECE_POS.at(KING).at(0);
     }
 
     // Returns the game_piece pointer for the provided location
     // Throws an error if attempting to pull a location beyond the scope of the board
     // Simply returns an invalid piece if there isn't anything there
     game_piece Game::get_location(const std::pair<int, int>& location) const {
-        int x = std::get<0>(location);
-        int y = std::get<1>(location);
+        int x = location.first;
+        int y = location.second;
 
         if (!validate_position(location)) {
             throw std::runtime_error("You cannot select outside the bounds of the board");
@@ -156,14 +160,13 @@ namespace Chess_API {
 
     // Removes any pieces on the provided location - if there isn't a piece there then it does nothing
     void Game::remove_piece(const std::pair<int, int>& location) {
-        int x = std::get<0>(location);
-        int y = std::get<1>(location);
+        int x = location.first;
+        int y = location.second;
 
         // If attempting to remove outside the bounds then simply do nothing
         if (!validate_position(location)) {
             throw std::runtime_error("Cannot remove pieces outside the bounds of the board");
         }
-
         // As long as there is a piece on this position then remove it and ensure that this position is set back to a nullptr
         if (game_board[x][y] != nullptr) {
             delete game_board[x][y];
@@ -173,13 +176,15 @@ namespace Chess_API {
 
     // Plays the given move placing the game piece from start_pos to end_pos
     // Assumes that the move has been validated by is_valid_move - this function only validates that the move is within the bounds of the board
+    // Warning - ensure the move has been validated by is_valid_move - this can have memory violations otherwise
     // Simulate_move is a flag that will do all of the normal functionality with the expectation that the move will be undone
     // Therefore it does not update cached information (en_passant_position / king position)
-    void Game::play_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos, bool simulate_move) {
-        int start_x = std::get<0>(start_pos);
-        int start_y = std::get<1>(start_pos);
-        int end_x = std::get<0>(end_pos);
-        int end_y = std::get<1>(end_pos);
+    // Returns the game piece and location of the game piece captured - returns an invalid game piece if no piece was captured
+    std::pair<game_piece, std::pair<int, int>> Game::play_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos, bool simulate_move) {
+        int start_x = start_pos.first;
+        int start_y = start_pos.second;
+        int end_x = end_pos.first;
+        int end_y = end_pos.second;
 
         // Validate all of the positions to avoid access violations
         if (!validate_position(start_pos)) {
@@ -191,18 +196,80 @@ namespace Chess_API {
         }
 
         game_piece * start_piece_ptr = game_board[start_x][start_y];
-        game_piece * end_piece_ptr = game_board[end_x][end_y];
+        game_piece * end_piece_ptr = nullptr;
+        game_piece return_piece;
+        std::pair<int, int> return_loc;
+        bool normal_move = false;
 
-        // If the end spot is an empty location - simply transfer ownership of the memory from one position to the other
-        // Otherwise first deallocate the memory for the end location
-        if (end_piece_ptr != nullptr) {
-            delete game_board[end_x][end_y];
+        if (!simulate_move) {
+            ++start_piece_ptr->moves_made;
         }
 
-        game_board[end_x][end_y] = start_piece_ptr;
-        game_board[start_x][start_y] = nullptr;
+        // Consideration for en passant captures
+        if (start_piece_ptr->type == GAME_PIECE_TYPE::PAWN) {
+            int delta_x = end_x - start_x;
 
-        // Considerations for pawns - if a pawn moved 2 vertically, then the position behind it becomes a en passant valid position
+            if (end_pos == en_passant_position) {
+                return_piece = get_location(std::make_pair(end_x - delta_x, end_y));
+                return_loc = std::make_pair(end_x - delta_x, end_y);
+                delete game_board[end_x - delta_x][end_y];
+                game_board[end_x - delta_x][end_y] = nullptr;
+                game_board[end_x][end_y] = start_piece_ptr;
+                game_board[start_x][start_y] = nullptr;
+            } else {
+                normal_move = true;
+            }
+        //  Consideration for castling kings
+        } else if (start_piece_ptr->type == GAME_PIECE_TYPE::KING) {
+            int delta_y = end_y - start_y;
+
+            // Castling situation - assumes no need to deallocate memory as there should not be any pieces being removed
+            if (abs(delta_y) == 2) {
+                int rook_y = delta_y > 0 ? DEFAULT_CHESS_BOARD_SIZE - 1 : 0;
+                game_piece * rook_ptr = game_board[start_x][rook_y];
+
+                // Move the king
+                game_board[end_x][end_y] = start_piece_ptr;
+                game_board[start_x][start_y] = nullptr;
+
+                // Move the rook
+                if (!simulate_move) {
+                    ++rook_ptr->moves_made;
+                }
+                int end_rook_y = delta_y > 0 ? DEFAULT_CHESS_BOARD_SIZE - 3 : 3;
+                game_board[end_x][end_rook_y] = rook_ptr;
+                game_board[start_x][rook_y] = nullptr;
+
+            } else {
+                normal_move = true;
+            }
+            
+            if (current_player == player1) {
+                player1_king_position = std::make_pair(end_x, end_y);
+            } else {
+                player2_king_position = std::make_pair(end_x, end_y);
+            }
+        } else {
+            normal_move = true;
+        }
+
+        // Normal considerations - simply move the start piece to the end position
+        if (normal_move) {
+            end_piece_ptr = game_board[end_x][end_y];
+            return_piece = get_location(std::make_pair(end_x, end_y));
+            return_loc = std::make_pair(end_x, end_y);
+
+            // If the end spot is an empty location - simply transfer ownership of the memory from one position to the other
+            // Otherwise first deallocate the memory for the end location
+            if (end_piece_ptr != nullptr) {
+                delete game_board[end_x][end_y];
+            }
+
+            game_board[end_x][end_y] = start_piece_ptr;
+            game_board[start_x][start_y] = nullptr;
+        }
+
+        // Considerations for pawns - if a pawn moved 2 vertically, then the position behind it becomes an en passant valid position
         if (start_piece_ptr->type == GAME_PIECE_TYPE::PAWN && !simulate_move) {
             int delta_x = end_x - start_x;
 
@@ -215,11 +282,11 @@ namespace Chess_API {
             }
 
         // Otherwise the en passant position become invalid
-        } else {
+        } else if (!simulate_move) {
             en_passant_position = std::make_pair(-1, -1);
         }
 
-        // TODO: Implement captures for en passant and implement castling move and detection
+        return std::make_pair(return_piece, return_loc);
     }
 
     // Updates the internal game state based on chess ruling
@@ -340,8 +407,8 @@ namespace Chess_API {
 
     // Validates that the position is a valid position on the board
     bool Game::validate_position(const std::pair<int, int>& position) const {
-        int x = std::get<0>(position);
-        int y = std::get<1>(position);
+        int x = position.first;
+        int y = position.second;
 
         // If attempting to remove outside the bounds then simply do nothing
         if (x >= DEFAULT_CHESS_BOARD_SIZE || y >= DEFAULT_CHESS_BOARD_SIZE || x < 0 || y < 0) {
@@ -361,49 +428,53 @@ namespace Chess_API {
     }
 
     // Validates if the given piece can move described by move - for restricted pieces
-    bool Game::validate_piece_move_restricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move) const {
+    Game::MOVE_ERROR_CODE Game::validate_piece_move_restricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move) const {
         std::vector<std::pair<int, int>> moveset = PIECE_MOVESETS.at(type);
 
         auto move_found = std::find(moveset.cbegin(), moveset.cend(), move);
 
-        return move_found != moveset.cend();
+        if(move_found != moveset.cend()) {
+            return VALID_MOVE;
+        } else {
+            return ILLEGAL_MOVE;
+        }
     }
 
     // Validates if the given piece can move described by move - for unrestricted pieces (ensures the path is clear for the piece)
-    bool Game::validate_piece_move_unrestricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move, const std::pair<int, int>& start_pos, const std::pair<int, int> end_pos) const {
+    Game::MOVE_ERROR_CODE Game::validate_piece_move_unrestricted(const GAME_PIECE_TYPE type, const std::pair<int, int>& move, const std::pair<int, int>& start_pos, const std::pair<int, int> end_pos) const {
         // First ensure the move is within the moveset
-        if (!validate_piece_move_restricted(type, move)) {
-            return false;
+        if (validate_piece_move_restricted(type, move) != VALID_MOVE) {
+            return ILLEGAL_MOVE;
         }
 
         // Next - map out the path from the start pos to the end pos ensuring there are no pieces in the way
-        int x_start = std::get<0>(start_pos) + std::get<0>(move);
-        int y_start = std::get<1>(start_pos) + std::get<1>(move);
+        int x_start = start_pos.first + move.first;
+        int y_start = start_pos.second + move.second;
 
-        int x_end = std::get<0>(end_pos);
-        int y_end = std::get<1>(end_pos);
+        int x_end = end_pos.first;
+        int y_end = end_pos.second;
 
-        // If there are any valid pieces along the path then return false
+        // If there are any valid pieces along the path then return BLOCKED
         while (x_start != x_end && y_start != y_end) {
             game_piece piece = get_location(std::make_pair(x_start, y_start));
 
             if (validate_game_piece(piece)) {
-                return false;
+                return BLOCKED_MOVE;
             }
 
-            x_start += std::get<0>(move);
-            y_start += std::get<1>(move);
+            x_start += move.first;
+            y_start += move.second;
         }
         
         // If we make it here then the path should be clear
-        return true;
+        return VALID_MOVE;
     }
 
     // Determines is baseline delta move for the piece, finding the root move direction for unrestricted pieces
     std::pair<float, float> Game::calculate_piece_delta_move(const game_piece& piece, const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
         // Calculate the overall move
-        int delta_x = std::get<0>(end_pos) - std::get<0>(start_pos);
-        int delta_y = std::get<1>(end_pos) - std::get<1>(start_pos);
+        int delta_x = end_pos.first - start_pos.first;
+        int delta_y = end_pos.second - start_pos.second;
         float base_delta_x = 0;
         float base_delta_y = 0;
 
@@ -426,6 +497,9 @@ namespace Chess_API {
                     base_delta_y = static_cast<float>(delta_y) / static_cast<float>(abs(delta_x));
                 }
             }
+        } else {
+            base_delta_x = delta_x;
+            base_delta_y = delta_y;
         }
 
         std::pair<float, float> delta_pair = std::make_pair(base_delta_x, base_delta_y);
@@ -434,96 +508,103 @@ namespace Chess_API {
     } 
 
     // Validates that the move is an acceptable move for a pawn given the current state of the board - no consideration for checks
-    bool Game::validate_pawn_move(const game_piece& starting_piece, const game_piece& ending_piece, const std::pair<int, int>& move, const std::pair<int, int>& end_pos) const {
+    Game::MOVE_ERROR_CODE Game::validate_pawn_move(const game_piece& starting_piece, const game_piece& ending_piece, const std::pair<int, int>& move, const std::pair<int, int>& end_pos) const {
         std::vector<std::pair<int, int>> moveset = PIECE_MOVESETS.at(GAME_PIECE_TYPE::PAWN);
         // Pawns may only move in a set x-direction, therefore check to ensure the move aligns with this pawns direction
         if (starting_piece.pawn_move_positive_x) {
-            if (std::get<0>(move) < 0) {
-                return false;
+            if (move.first < 0) {
+                return ILLEGAL_MOVE;
             }
         } else {
-            if (std::get<0>(move) > 0) {
-                return false;
+            if (move.first > 0) {
+                return ILLEGAL_MOVE;
             }
         }
 
         // Determine if the move is within the set
         auto move_found = std::find(moveset.cbegin(), moveset.cend(), move);
         if (move_found == moveset.cend()) {
-            return false;
+            return ILLEGAL_MOVE;
         }
 
         // Now that the move is validated - we must further consider if the move is the double move
-        if (abs(std::get<0>(move)) == 2) {
-            // As long as this is the pawns first move then this is valid
-            if (starting_piece.moves_made == 0) {
-                return true;
+        if (abs(move.first) == 2) {
+            // As long as this is the pawns first move and there isn't a piece in the way then this is valid
+            if (starting_piece.moves_made == 0 && !validate_game_piece(ending_piece)) {
+                // We need to ensure the whole path is clear for the pawn to make this move
+                int delta_x = move.first > 0 ? -1 : 1;
+                int other_x = end_pos.first + delta_x;
+                if(!validate_game_piece(get_location(std::make_pair(other_x, end_pos.second)))) {
+                    return VALID_MOVE;
+                } else {
+                    return BLOCKED_MOVE;
+                }
             } else {
-                return false;
+                return ILLEGAL_MOVE;
             }
         }
 
         // Further consider if this is an en passant move or a diagonal capture
-        if (abs(std::get<0>(move)) / abs(std::get<1>(move)) == 1) {
+        if (move.second != 0) {
             // First consider if this is a normal capture - the capture piece must be of a different color but not an invalid color
             if (ending_piece.color != starting_piece.color && ending_piece.color != GAME_PIECE_COLOR::NOCOLOR) {
-                return true;
+                return VALID_MOVE;
             
             // Otherwise consider if this is an en passant move
             } else {
                 // Compares the end position to the current valid en passant position that is determined every call of play_move
                 if (end_pos == en_passant_position) {
-                    return true;
+                    return VALID_MOVE;
                 } else {
-                    return false;
+                    return ILLEGAL_MOVE;
                 }
             }
-
-        // If it is not a diagonal move then it must be an empty spot otherwise it is an invalid move
+        
+        // Simplest normal move for the pawn - ensure there is no piece in the end position
         } else {
-            if (ending_piece.color != GAME_PIECE_COLOR::NOCOLOR || ending_piece.type != GAME_PIECE_TYPE::NOTYPE) {
-                return false;
+            if(!validate_game_piece(ending_piece)) {
+                return VALID_MOVE;
             } else {
-                return true;
+                return BLOCKED_MOVE;
             }
         }
     }
 
     // Validates that the move is an acceptable move for a king given the current state of the board - no consideration for checks
-    bool Game::validate_king_move(const game_piece& starting_piece, const std::pair<int, int> move, const std::pair<int, int>& start_pos) const {
+    Game::MOVE_ERROR_CODE Game::validate_king_move(const game_piece& starting_piece, const std::pair<int, int> move, const std::pair<int, int>& start_pos) const {
         // First determine if the move is valid in the set
-        if (!validate_piece_move_restricted(GAME_PIECE_TYPE::KING, move)) {
-            return false;
+        if (validate_piece_move_restricted(GAME_PIECE_TYPE::KING, move) != VALID_MOVE) {
+            return ILLEGAL_MOVE;
         }
 
         // Determine if the move is attempting to castle
-        if (abs(std::get<1>(move)) == 2) {
+        if (abs(move.second) == 2) {
             // Determine if the king has moved
             if (starting_piece.moves_made != 0) {
-                return false;
+                return ILLEGAL_MOVE;
             }
 
             // Select the respective rook to ensure it also hasn't moved
             game_piece castle_rook;
-            if (std::get<1>(move) < 0) {
-                castle_rook = get_location(std::make_pair(std::get<0>(move), 0));
+            if (move.second < 0) {
+                castle_rook = get_location(std::make_pair(start_pos.first, 0));
             } else {
-                castle_rook = get_location(std::make_pair(std::get<0>(move), 7));
+                castle_rook = get_location(std::make_pair(start_pos.first, 7));
             }
 
             if (castle_rook.moves_made != 0) {
-                return false;
+                return ILLEGAL_MOVE;
             }
 
             // Ensure that the game state is not currently in check
             if (current_game_state == GAME_STATE::CHECK) {
-                return false;
+                return ILLEGAL_MOVE;
             }
 
             // Ensure the path between the rook and king is clear
-            int x = std::get<0>(start_pos);
-            int y = std::get<1>(start_pos);
-            int end_y = std::get<1>(move) < 0 ? 0 : 7;
+            int x = start_pos.first;
+            int y = start_pos.second;
+            int end_y = move.second < 0 ? 0 : 7;
             if (end_y > y) {
                 ++y;
             } else {
@@ -532,9 +613,9 @@ namespace Chess_API {
             while (y != end_y) {
                 game_piece piece = get_location(std::make_pair(x, y));
 
-                // At any point if there is a valid piece - return false
+                // At any point if there is a valid piece - return BLOCKED
                 if (validate_game_piece(piece)) {
-                    return false;
+                    return BLOCKED_MOVE;
                 }
                 
                 if (end_y > y) {
@@ -545,11 +626,11 @@ namespace Chess_API {
             }
 
             // Finally if there are no pieces in the way then this is a valid castle move
-            return true;
+            return VALID_MOVE;
 
         // If it isn't a castle attempt then the move is valid
         } else {
-            return true;
+            return VALID_MOVE;
         }
     }
 
@@ -557,14 +638,15 @@ namespace Chess_API {
     // Notably - this only determines if this move is considered by chess ruling for the pieces
     // However, this does not take into consideration if this is a valid move given the board state
     // No checks are made to determine if the game will be in check based on this function
-    bool Game::is_legal_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
+    // Returns an error code to describe the state of the move
+    Game::MOVE_ERROR_CODE Game::is_legal_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) const {
         // First - validate that the moves are within the bounds of the board
         if (!validate_position(start_pos)) {
-            return false;
+            return OUT_OF_BOUNDS_MOVE;
         }
 
         if (!validate_position(end_pos)) {
-            return false;
+            return OUT_OF_BOUNDS_MOVE;
         }
 
         // For a move to be valid there must first be a piece at the start_pos and there must not be a piece at the end_pos of the same color
@@ -573,28 +655,28 @@ namespace Chess_API {
 
         // Validate that there exists a piece at start_pos
         if (!validate_game_piece(starting_piece)) {
-            return false;
+            return NO_PIECE;
         }
 
-        // Validate that the ending piece is either empty or a valid piece of a different color
+        // Validate that the ending piece cannot be the same color
         if (validate_game_piece(ending_piece) && ending_piece.color == starting_piece.color) {
-            return false;
+            return BLOCKED_MOVE;
         } 
 
         // Next validate that the current player has control of the target piece
         if (starting_piece.color != current_player->get_player_color()) {
-            return false;
+            return WRONG_PLAYER;
         }
 
         // Determine the baseline movement - unrestricted pieces will have the movement become base 1
         std::pair<float, float> delta_pair_float = calculate_piece_delta_move(starting_piece, start_pos, end_pos);
-
+        
         // Ensuring the delta pair are whole numbers
-        if (ceil(std::get<0>(delta_pair_float)) != floor(std::get<0>(delta_pair_float)) || ceil(std::get<1>(delta_pair_float)) != floor(std::get<1>(delta_pair_float))) {
-            return false;
+        if (ceil(delta_pair_float.first) != floor(delta_pair_float.first) || ceil(delta_pair_float.second) != floor(delta_pair_float.second)) {
+            return ILLEGAL_MOVE;
         }
 
-        std::pair<int, int> delta_pair = std::make_pair(std::get<0>(delta_pair_float), std::get<1>(delta_pair_float));
+        std::pair<int, int> delta_pair = std::make_pair(delta_pair_float.first, delta_pair_float.second);
         
         // Determine if the delta_pair is a valid move for each piece given the game board
         // Pawns have special ruling on how they move
@@ -609,7 +691,7 @@ namespace Chess_API {
         } else if (!starting_piece.is_restricted) {
             return validate_piece_move_unrestricted(starting_piece.type, delta_pair, start_pos, end_pos);
         
-        // Lastly for unrestricted pieces its a simple look-up
+        // Lastly for restricted pieces its a simple look-up
         } else {
             return validate_piece_move_restricted(starting_piece.type, delta_pair);
         }
@@ -619,21 +701,47 @@ namespace Chess_API {
     bool Game::simulate_move_for_check(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) {
         // Setup the variables to simulate playing the incremental move
         game_piece start_piece = get_location(start_pos);
-        game_piece end_piece = get_location(end_pos);
-        play_move(start_pos, end_pos, true);
+        std::pair<game_piece, std::pair<int, int>> removed_data = play_move(start_pos, end_pos, true);
+        game_piece end_piece = removed_data.first;
 
         bool return_val = is_in_check();
 
-        // Clearing all potential positions where a piece could still be at before re-adding all of the pieces
-        remove_piece(end_pos);
-        remove_piece(start_pos);
+        // Case where the king castled - we need to replace where both the king and rook were
+        if (start_piece.type == GAME_PIECE_TYPE::KING && abs(start_pos.second - end_pos.second) == 2) {
+            int delta_y = end_pos.second - start_pos.second;
+            // Getting the rooks new position relative to the king
+            int rook_y = delta_y > 0 ? end_pos.second - 1 : end_pos.second + 1;
+            game_piece * rook_ptr = game_board[start_pos.first][rook_y];
+            game_piece * king_ptr = game_board[end_pos.first][end_pos.second];
 
-        if (validate_game_piece(start_piece)) {
-            add_piece(start_piece.type, start_piece.color, start_pos);
-        }
-        
-        if (validate_game_piece(end_piece)) {
-            add_piece(end_piece.type, end_piece.color, end_pos);
+            // Replacing the king
+            game_board[start_pos.first][start_pos.second] = king_ptr;
+            game_board[end_pos.first][end_pos.second] = nullptr;
+
+            // Replacing the rook
+            if (delta_y > 0) {
+                game_board[start_pos.first][DEFAULT_CHESS_BOARD_SIZE - 1] = rook_ptr;
+            } else {
+                game_board[start_pos.first][0] = rook_ptr;
+            }
+
+            game_board[start_pos.first][rook_y] = nullptr;
+            
+        } else {
+            // Clearing all potential positions where a piece could still be at before re-adding all of the pieces
+            remove_piece(removed_data.second);
+            remove_piece(start_pos);
+
+            // Readding pieces with moves made to ensure the piece is exactly the same as the previous version
+            if (validate_game_piece(start_piece)) {
+                game_board[start_pos.first][start_pos.second] = new game_piece(start_piece.type, start_piece.color);
+                game_board[start_pos.first][start_pos.second]->moves_made = start_piece.moves_made;
+            }
+
+            if (validate_game_piece(end_piece)) {
+                game_board[removed_data.second.first][removed_data.second.second] = new game_piece(end_piece.type, end_piece.color);
+                game_board[removed_data.second.first][removed_data.second.second]->moves_made = end_piece.moves_made;
+            }
         }
 
         return return_val;
@@ -642,9 +750,10 @@ namespace Chess_API {
     // Determines if the move described by the start and end positions is a valid move based on chess ruling
     // Notably - this is different from is_legal_move because it ensures the move is not placing the player in check
     // This is the function that should be used to determine if a move is truly valid before playing the move
-    bool Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) {
-        if (!is_legal_move(start_pos, end_pos)) {
-            return false;
+    Game::MOVE_ERROR_CODE Game::is_valid_move(const std::pair<int, int>& start_pos, const std::pair<int, int>& end_pos) {
+        MOVE_ERROR_CODE legality = is_legal_move(start_pos, end_pos);
+        if (legality != VALID_MOVE) {
+            return legality;
         }
 
         // For the move to be valid - it must not place the current player in check
@@ -652,17 +761,17 @@ namespace Chess_API {
         game_piece end_piece = get_location(end_pos);
         game_piece start_piece = get_location(start_pos);
 
-        int delta_x = abs(std::get<0>(end_pos) - std::get<0>(start_pos));
-        int delta_y = abs(std::get<1>(end_pos) - std::get<1>(start_pos));
+        int delta_x = abs(end_pos.first - start_pos.first);
+        int delta_y = abs(end_pos.second - start_pos.second);
 
         // For moves greater than 1 unit we must simulate each move to ensure that no move along the route places the player in check
         // Knights are the exception - they move straight to their end position
         if ((delta_x > 1 || delta_y > 1) && start_piece.type != GAME_PIECE_TYPE::KNIGHT) {
             std::pair<float, float> move_delta = calculate_piece_delta_move(start_piece, start_pos, end_pos);
-            int move_delta_x = round(std::get<0>(move_delta));
-            int move_delta_y = round(std::get<1>(move_delta));
-            int start_x = std::get<0>(start_pos);
-            int start_y = std::get<1>(start_pos);
+            int move_delta_x = round(move_delta.first);
+            int move_delta_y = round(move_delta.second);
+            int start_x = start_pos.first;
+            int start_y = start_pos.second;
             
             std::pair<int, int> next_move;
             do {
@@ -672,16 +781,20 @@ namespace Chess_API {
                 
                 // Simulate the move and determine if it places the player in check
                 if (simulate_move_for_check(start_pos, next_move)) {
-                    return false;
+                    return CHECK_MOVE;
                 }
             } while (next_move != end_pos);
 
             // Making it out of the do-while loop means that all of the moves are valid and the move can be accomplished
-            return true;
+            return VALID_MOVE;
         
         // A restricted piece can just make the move - simply ensure that the move won't place the player in check
         } else {
-            return !simulate_move_for_check(start_pos, end_pos);
+            if (simulate_move_for_check(start_pos, end_pos)) {
+                return CHECK_MOVE;
+            } else {
+                return VALID_MOVE;
+            }
         }
     }
 
@@ -700,7 +813,7 @@ namespace Chess_API {
         std::pair<int, int> king_pos = current_player == player1 ? player1_king_position : player2_king_position;
 
         // Ensure that the king position has been defined
-        if (std::get<0>(king_pos) == -1 || std::get<1>(king_pos) == -1) {
+        if (king_pos.first == -1 || king_pos.second == -1) {
             return false;
         }
 
@@ -712,9 +825,10 @@ namespace Chess_API {
         game_piece piece;
 
         for(int i = 0; i < area_around_king.size(); ++i) {
-            std::pair<int, int> piece_delta = area_around_king[i];
-            int piece_x = std::get<0>(piece_delta) + std::get<0>(king_pos);
-            int piece_y = std::get<1>(piece_delta) + std::get<1>(king_pos);
+            std::pair<int, int> piece_delta = area_around_king.at(i);
+            int piece_x = piece_delta.first + king_pos.first;
+            int piece_y = piece_delta.second + king_pos.second;
+
 
             try {
                 piece = get_location(std::make_pair(piece_x, piece_y));
@@ -736,8 +850,8 @@ namespace Chess_API {
                 } else if (!validate_game_piece(piece)) {
                     // Loop to scale up the direction and get the next piece
                     for(int j = 2; j < DEFAULT_CHESS_BOARD_SIZE; ++j) {
-                        int piece_x = (std::get<0>(piece_delta) * j) + std::get<0>(king_pos);
-                        int piece_y = (std::get<1>(piece_delta) * j) + std::get<1>(king_pos);
+                        int piece_x = (piece_delta.first * j) + king_pos.first;
+                        int piece_y = (piece_delta.second * j) + king_pos.second;
 
                         // If we hit a wall then this will throw an error that we catch below
                         piece = get_location(std::make_pair(piece_x, piece_y));
@@ -753,7 +867,7 @@ namespace Chess_API {
                                 swap_current_player();
 
                                 // If this move is legal then the current player is in check
-                                if(is_legal_move(std::make_pair(piece_x, piece_y), king_pos)) {
+                                if(is_legal_move(std::make_pair(piece_x, piece_y), king_pos) == VALID_MOVE) {
                                     swap_current_player();
                                     return true;
                                 // Otherwise this direction is safe, move on to the next direction
@@ -778,8 +892,8 @@ namespace Chess_API {
 
         for (int i = 0; i < knight_moveset.size(); ++i) {
             std::pair<int, int> piece_delta = knight_moveset[i];
-            int piece_x = std::get<0>(piece_delta) + std::get<0>(king_pos);
-            int piece_y = std::get<1>(piece_delta) + std::get<1>(king_pos);
+            int piece_x = piece_delta.first + king_pos.first;
+            int piece_y = piece_delta.second + king_pos.second;
 
             try {
                 piece = get_location(std::make_pair(piece_x, piece_y));

@@ -79,7 +79,11 @@ namespace Chess_API {
                 is_restricted = true;
             }
             // Default value to avoid errors in case this is used
-            pawn_move_positive_x = false;
+            if (type_in == PAWN && color_in == WHITE) {
+                pawn_move_positive_x = true;
+            } else {
+                pawn_move_positive_x = false;
+            }
         }
     };
 

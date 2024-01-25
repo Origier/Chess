@@ -2,6 +2,7 @@
 
 using namespace Chess_API;
 using namespace std;
+using namespace std::chrono;
 
 // Helper test function - determines if a move is valid and then returns useful information regarding the validity
 std::pair<bool, std::string> check_move_error_codes(Game& game_in, const std::pair<int, int> start_pos, const std::pair<int, int> end_pos) {
@@ -1775,6 +1776,116 @@ bool test_queen_invalid_moves() {
     return true;
 }
 
+// Tests that the fools checkmate will place the player in checkmate - not an exhaustive test - play testing must be done but this at least sets a baseline to ensure that checkmate acts as expected on the simplest case
+bool test_check_mate() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Player 1's turn
+    std::pair<int, int> player_1_move_start = std::make_pair(1, 5);
+    std::pair<int, int> player_1_move_end = std::make_pair(2, 5);
+
+    // Player 2's turn
+    std::pair<int, int> player_2_move_start = std::make_pair(6, 4);
+    std::pair<int, int> player_2_move_end = std::make_pair(4, 4);
+
+    // F2 - F3
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.swap_current_player();
+
+    // E7 - E5
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.swap_current_player();
+
+    // Player 1's turn
+    player_1_move_start = std::make_pair(1, 6);
+    player_1_move_end = std::make_pair(3, 6);
+
+    // Player 2's turn
+    player_2_move_start = std::make_pair(7, 3);
+    player_2_move_end = std::make_pair(3, 7);
+
+    // G2 - G4
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.swap_current_player();
+
+    // D8 - H4 - Checkmate
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.swap_current_player();
+    new_game.update_game_state();
+
+    return new_game.get_current_game_state() == Game::GAME_STATE::CHECKMATE;
+}
+
+// Tests the check mate function for efficieny - runs many tests to measure the time to check for check mates in the worst case and returns the amount of microseconds it took to finish
+int test_check_mate_efficieny(int number_of_tests) {
+    // Setup for the timed test
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.setup_default_board_state();
+
+    // Player 1's turn
+    std::pair<int, int> player_1_move_start = std::make_pair(1, 5);
+    std::pair<int, int> player_1_move_end = std::make_pair(2, 5);
+
+    // Player 2's turn
+    std::pair<int, int> player_2_move_start = std::make_pair(6, 4);
+    std::pair<int, int> player_2_move_end = std::make_pair(4, 4);
+
+    // F2 - F3
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.swap_current_player();
+
+    // E7 - E5
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.swap_current_player();
+
+    // Player 1's turn
+    player_1_move_start = std::make_pair(1, 6);
+    player_1_move_end = std::make_pair(3, 6);
+
+    // Player 2's turn
+    player_2_move_start = std::make_pair(7, 3);
+    player_2_move_end = std::make_pair(3, 7);
+
+    // G2 - G4
+    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
+        new_game.play_move(player_1_move_start, player_1_move_end);
+    }    
+    new_game.swap_current_player();
+
+    // D8 - H4 - Checkmate
+    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
+        new_game.play_move(player_2_move_start, player_2_move_end);
+    }    
+    new_game.swap_current_player();
+
+    microseconds start = duration_cast<microseconds>(system_clock::now().time_since_epoch());
+
+    for (int i = 0; i < number_of_tests; ++i) {
+        new_game.update_game_state();
+    }
+    
+    microseconds end = duration_cast<microseconds>(system_clock::now().time_since_epoch());
+
+    return end.count() - start.count();
+}
+
 // Use only when messing with the display settings - not an important unit test
 void test_display() {
     shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
@@ -2139,8 +2250,31 @@ int run_game_tests() {
     }
 
 
+    // Testing checkmate to ensure a checkmate can be achieved
+    try {
+        if (!test_check_mate()) {
+            cout << "   ERROR: Check mate was note achieved on the Fools Checkmate" << endl;
+            ++errors;
+        }
+    } catch(exception e) {
+        cout << "   ERROR: test_check_mate threw an error: " << e.what() << endl;
+        ++errors;
+    }
+
+
+    // Testing checkmate many times for efficieny
+    try {
+        int tested_times = 1000;
+        int elapsed_time = test_check_mate_efficieny(tested_times);
+        cout << "TEST RESULTS: The check mate function was able to perform " << tested_times << " tests in a worst case scenario in " << elapsed_time << " microseconds or " << elapsed_time / tested_times << " microseconds per test " << endl;
+    } catch(exception e) {
+        cout << "   ERROR: test_check_mate_efficieny threw an error: " << e.what() << endl;
+        ++errors;
+    }
+
+
     // Temporary test to simulate play
-    test_simulating_play();
+    // test_simulating_play();
     // test_display();
 
 

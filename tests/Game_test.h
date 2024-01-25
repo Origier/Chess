@@ -8,6 +8,7 @@
 #include <vector>
 #include <iostream> // cout, endl
 #include <cstdlib>  // rand
+#include <chrono>   // measuring time passed
 
 
 // Executes all of the unit tests for the game object - if any fail it will return an integer to describe the number that failed

@@ -295,18 +295,15 @@ namespace Chess_API {
     void Game::update_game_state() {
         // Run through each function to check which state the game is in - check first since checkmate implies check
         // Stalemate last because stalemate is separate from both
-        if (is_in_check()) {
-            current_game_state = GAME_STATE::CHECK;
-        }
-
         if (is_in_checkmate()) {
             current_game_state = GAME_STATE::CHECKMATE;
-        }
-
-        if (is_in_stalemate()) {
+        } else if (is_in_stalemate()) {
             current_game_state = GAME_STATE::STALEMATE;
+        } else if (is_in_check()) {
+            current_game_state = GAME_STATE::CHECK;
+        } else {
+            current_game_state = GAME_STATE::NORMAL;
         }
-
     }
 
     // Returns the current state of the game
@@ -914,10 +911,42 @@ namespace Chess_API {
         return false;
     }
 
-    // Determines if the game is currently in checkmate
+    // Determines if the current player is in checkmate
+    // Checkmate is defined as currently being in check but also being unable to make a move to take you out of check
     bool Game::is_in_checkmate() {
-        // TODO - Implement
-        return false;
+        // Loop through every position on the board - check if the piece matches the current players color and see if that piece has a valid move - aka doesn't leave the player in check
+        game_piece player_piece;
+        std::vector<std::pair<int, int>> piece_moves;
+        std::pair<int, int> move;
+        std::pair<int, int> start_pos;
+        std::pair<int, int> end_pos;
+        for (int i = 0; i < DEFAULT_CHESS_BOARD_SIZE; ++i) {
+            for (int j = 0; j < DEFAULT_CHESS_BOARD_SIZE; ++j) {
+                player_piece = get_location(std::make_pair(i, j));
+                if (validate_game_piece(player_piece) && (current_player->get_player_color() == player_piece.color)) {
+                    piece_moves = PIECE_MOVESETS.at(player_piece.type);
+                    for (int k = 0; k < piece_moves.size(); ++k) {
+                        move = piece_moves.at(k);
+                        start_pos = std::make_pair(i, j);
+                        if (player_piece.is_restricted) {
+                            end_pos = std::make_pair(i + move.first, j + move.second);
+                            if (is_valid_move(start_pos, end_pos) == VALID_MOVE) {
+                                return false;
+                            }
+                        } else {
+                            for (int l = 1; (((l * move.first) + i < DEFAULT_CHESS_BOARD_SIZE) && ((l * move.first) + i >= 0)) \
+                            && (((l * move.second) + j < DEFAULT_CHESS_BOARD_SIZE) && ((l * move.second) + j >= 0)); ++l) {
+                                end_pos = std::make_pair(l * move.first + i, l * move.second + j);
+                                if (is_valid_move(start_pos, end_pos) == VALID_MOVE) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     // Determines if the game is currently in stalemate

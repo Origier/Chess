@@ -35,6 +35,21 @@ std::pair<bool, std::string> check_move_error_codes(Game& game_in, const std::pa
     }
 }
 
+// Helper function to print out a useful quote for the current game state
+void print_game_state(Game& game_in) {
+    Game::GAME_STATE state = game_in.get_current_game_state();
+
+    if (state == Game::GAME_STATE::CHECKMATE) {
+        cout << "The game is in a checkmate!" << endl;
+    } else if (state == Game::GAME_STATE::STALEMATE) {
+        cout << "The game is in a stalemate!" << endl;
+    } else if (state == Game::GAME_STATE::CHECK) {
+        cout << "The game is in check!" << endl;
+    } else {
+        cout << "The game is in normal play right now." << endl;
+    }
+}
+
 // Tests creating a basic game object and ensuring there isn't any memory leaks issues - returns true if successful
 bool test_create_game() {
     try {
@@ -1778,206 +1793,56 @@ void test_simulating_play() {
     new_game.show_board();
 
     // Player 1's turn
-    std::pair<int, int> player_1_move_start = std::make_pair(1, 3);
-    std::pair<int, int> player_1_move_end = std::make_pair(3, 3);
+    std::pair<int, int> player_1_move_start = std::make_pair(1, 5);
+    std::pair<int, int> player_1_move_end = std::make_pair(2, 5);
 
     // Player 2's turn
     std::pair<int, int> player_2_move_start = std::make_pair(6, 4);
     std::pair<int, int> player_2_move_end = std::make_pair(4, 4);
 
-    // D2 - D4
+    // F2 - F3
     if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
         new_game.play_move(player_1_move_start, player_1_move_end);
     }    
     new_game.show_board();
-
     new_game.swap_current_player();
+    new_game.update_game_state();
+    print_game_state(new_game);
 
     // E7 - E5
     if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
         new_game.play_move(player_2_move_start, player_2_move_end);
     }    
     new_game.show_board();
-
-
-
     new_game.swap_current_player();
+    new_game.update_game_state();
+    print_game_state(new_game);
 
-    player_1_move_start = std::make_pair(3, 3);
-    player_1_move_end = std::make_pair(4, 4);
+    // Player 1's turn
+    player_1_move_start = std::make_pair(1, 6);
+    player_1_move_end = std::make_pair(3, 6);
 
-    // Player 1 capture from D4 - E5
-    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
-        new_game.play_move(player_1_move_start, player_1_move_end);
-    }    
-    new_game.show_board();
-
-
-
-    new_game.swap_current_player();
-
-    player_2_move_start = std::make_pair(7, 4);
-    player_2_move_end = std::make_pair(6, 4);
-
-    // E8 - E7
-    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
-        new_game.play_move(player_2_move_start, player_2_move_end);
-    }    
-    new_game.show_board();
-
-
-
-    new_game.swap_current_player();
-
-    player_1_move_start = std::make_pair(0, 3);
-    player_1_move_end = std::make_pair(1, 3);
-
-    // Player 1 capture from D1 - D2
-    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
-        new_game.play_move(player_1_move_start, player_1_move_end);
-    }    
-    new_game.show_board();
-
-
-
-    new_game.swap_current_player();
-
-    player_2_move_start = std::make_pair(6, 3);
-    player_2_move_end = std::make_pair(4, 3);
-
-    // D7 - D5
-    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
-        new_game.play_move(player_2_move_start, player_2_move_end);
-    }    
-    new_game.show_board();
-
-
-
-    new_game.swap_current_player();
-
-    player_1_move_start = std::make_pair(4, 4);
-    player_1_move_end = std::make_pair(5, 3);
-
-    // Player 1 en passant capture E5 - D6, capturing D5
-    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
-        new_game.play_move(player_1_move_start, player_1_move_end);
-    }    
-    new_game.show_board();
-
-
-
-    new_game.swap_current_player();
-
+    // Player 2's turn
     player_2_move_start = std::make_pair(7, 3);
-    player_2_move_end = std::make_pair(5, 3);
+    player_2_move_end = std::make_pair(3, 7);
 
-    // Player 2 capture D8 - D6
-    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
-        
-        new_game.play_move(player_2_move_start, player_2_move_end);
-    }    
-    new_game.show_board();
-
-
-
-    new_game.swap_current_player();
-
-    player_1_move_start = std::make_pair(1, 3);
-    player_1_move_end = std::make_pair(3, 1);
-
-    // D2 - B4
+    // G2 - G4
     if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
         new_game.play_move(player_1_move_start, player_1_move_end);
     }    
     new_game.show_board();
-
-
     new_game.swap_current_player();
+    new_game.update_game_state();
+    print_game_state(new_game);
 
-    player_2_move_start = std::make_pair(5, 3);
-    player_2_move_end = std::make_pair(3, 1);
-
-    // Player 2 capture D6 - B4
+    // D8 - H4 - Checkmate
     if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
-        
         new_game.play_move(player_2_move_start, player_2_move_end);
     }    
     new_game.show_board();
-
-
     new_game.swap_current_player();
-
-    player_1_move_start = std::make_pair(0, 1);
-    player_1_move_end = std::make_pair(2, 2);
-
-    // B1 - C3
-    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
-        new_game.play_move(player_1_move_start, player_1_move_end);
-    }    
-    new_game.show_board();
-
-
-    new_game.swap_current_player();
-
-    player_2_move_start = std::make_pair(7, 2);
-    player_2_move_end = std::make_pair(4, 5);
-
-    // Player 2 capture C8 - F5
-    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
-        
-        new_game.play_move(player_2_move_start, player_2_move_end);
-    }    
-    new_game.show_board();
-
-
-    new_game.swap_current_player();
-
-    player_1_move_start = std::make_pair(0, 2);
-    player_1_move_end = std::make_pair(3, 5);
-
-    // C1 - F4
-    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
-        new_game.play_move(player_1_move_start, player_1_move_end);
-    }    
-    new_game.show_board();
-
-
-    new_game.swap_current_player();
-
-    player_2_move_start = std::make_pair(6, 2);
-    player_2_move_end = std::make_pair(4, 2);
-
-    // Player 2 capture C7 - C5
-    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
-        
-        new_game.play_move(player_2_move_start, player_2_move_end);
-    }    
-    new_game.show_board();
-
-
-    new_game.swap_current_player();
-
-    player_1_move_start = std::make_pair(0, 4);
-    player_1_move_end = std::make_pair(0, 2);
-
-    // Player 1 Castle left - E1 - C1
-    if (check_move_error_codes(new_game, player_1_move_start, player_1_move_end).first) {
-        new_game.play_move(player_1_move_start, player_1_move_end);
-    }    
-    new_game.show_board();
-
-
-    new_game.swap_current_player();
-
-    player_2_move_start = std::make_pair(6, 5);
-    player_2_move_end = std::make_pair(4, 5);
-
-    // Player 2 capture C7 - C5
-    if (check_move_error_codes(new_game, player_2_move_start, player_2_move_end).first) {
-        
-        new_game.play_move(player_2_move_start, player_2_move_end);
-    }    
-    new_game.show_board();
+    new_game.update_game_state();
+    print_game_state(new_game);
 }
 
 // Executes all of the unit tests for the Chess object - if any fail it will return an integer to describe the number that failed
@@ -2275,7 +2140,7 @@ int run_game_tests() {
 
 
     // Temporary test to simulate play
-    // test_simulating_play();
+    test_simulating_play();
     // test_display();
 
 

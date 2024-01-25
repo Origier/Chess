@@ -165,7 +165,8 @@ namespace Chess_API {
         // Determines if the current player is in check
         bool is_in_check();
 
-        // Determines if the game is currently in checkmate
+        // Determines if the current player is in checkmate
+        // Checkmate is defined as currently being in check but also being unable to make a move to take you out of check
         bool is_in_checkmate();
 
         // Determines if the game is currently in stalemate

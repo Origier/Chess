@@ -455,7 +455,7 @@ namespace Chess_API {
         int y_end = end_pos.second;
 
         // If there are any valid pieces along the path then return BLOCKED
-        while (x_start != x_end && y_start != y_end) {
+        while (x_start != x_end || y_start != y_end) {
             game_piece piece = get_location(std::make_pair(x_start, y_start));
 
             if (validate_game_piece(piece)) {

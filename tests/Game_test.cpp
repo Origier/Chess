@@ -1578,7 +1578,7 @@ bool test_queen_valid_moves() {
 
     // Setup for the queen to move
     std::pair<int, int> player_move_start = std::make_pair(1, 3);
-    std::pair<int, int> player_move_end = std::make_pair(2, 3);
+    std::pair<int, int> player_move_end = std::make_pair(3, 3);
 
     std::pair<bool, std::string> error_values = check_move_error_codes(new_game, player_move_start, player_move_end);
     if (error_values.first != true) {
@@ -2264,7 +2264,7 @@ int run_game_tests() {
 
     // Testing the queens moveset for invalid moves - acts as test completeness for unrestricted pieces
     try {
-        if (!test_queen_valid_moves()) {
+        if (!test_queen_invalid_moves()) {
             cout << "   ERROR: The queen was able to perform illegal moves" << endl;
             ++errors;
         }
@@ -2276,7 +2276,7 @@ int run_game_tests() {
 
     // Temporary test to simulate play
     // test_simulating_play();
-    test_display();
+    // test_display();
 
 
     return errors;

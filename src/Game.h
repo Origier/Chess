@@ -165,11 +165,15 @@ namespace Chess_API {
         // Determines if the current player is in check
         bool is_in_check();
 
+        // Determines if the current player has a valid move to make
+        bool current_player_has_valid_move();
+
         // Determines if the current player is in checkmate
         // Checkmate is defined as currently being in check but also being unable to make a move to take you out of check
         bool is_in_checkmate();
 
         // Determines if the game is currently in stalemate
+        // Stalemate is defined by the current player being unable to make a valid move but not being in check
         bool is_in_stalemate();
 
         std::shared_ptr<Player> player1;                                    // Player object that would have the "white" pieces

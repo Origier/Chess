@@ -1827,7 +1827,7 @@ bool test_check_mate() {
     return new_game.get_current_game_state() == Game::GAME_STATE::CHECKMATE;
 }
 
-// Tests the check mate function for efficieny - runs many tests to measure the time to check for check mates in the worst case and returns the amount of microseconds it took to finish
+// Tests the checkmate function for efficieny - runs many tests to measure the time to check for check mates in the worst case and returns the amount of microseconds it took to finish
 int test_check_mate_efficieny(int number_of_tests) {
     // Setup for the timed test
     shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
@@ -1884,6 +1884,22 @@ int test_check_mate_efficieny(int number_of_tests) {
     microseconds end = duration_cast<microseconds>(system_clock::now().time_since_epoch());
 
     return end.count() - start.count();
+}
+
+// Tests the stalemate function on the simple King + Pawn vs King stalemate scenario - not an axhaustive test - play testing must be done but this at least sets a baseline to ensure that stalemate acts as expected on the simplest case
+bool test_stale_mate() {
+    shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::WHITE));
+    shared_ptr<Player> player2(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::BLACK));
+    Game new_game(player1, player2);
+    new_game.add_piece(GAME_PIECE_TYPE::KING, GAME_PIECE_COLOR::BLACK, std::make_pair(7, 4));
+    new_game.add_piece(GAME_PIECE_TYPE::PAWN, GAME_PIECE_COLOR::WHITE, std::make_pair(6, 4));
+    new_game.add_piece(GAME_PIECE_TYPE::KING, GAME_PIECE_COLOR::WHITE, std::make_pair(5, 4));
+    new_game.swap_current_player(); // Blacks turn
+    new_game.update_game_state();
+    if (new_game.get_current_game_state() != Game::GAME_STATE::STALEMATE) {
+        return false;
+    }
+    return true;
 }
 
 // Use only when messing with the display settings - not an important unit test
@@ -2272,6 +2288,17 @@ int run_game_tests() {
         ++errors;
     }
 
+
+    // Testing stalemate to ensure a stalemate can be achieved
+    try {
+        if (!test_stale_mate()) {
+            cout << "   ERROR: Stalemate did not detect the King + Pawn vs King stalemate condition" << endl;
+            ++errors;
+        }
+    } catch(exception e) {
+        cout << "   ERROR: test_stale_mate threw an error: " << e.what() << endl;
+        ++errors;
+    }
 
     // Temporary test to simulate play
     // test_simulating_play();

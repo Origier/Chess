@@ -113,6 +113,15 @@ namespace Chess_API {
         }
 
         game_board[x][y] = new game_piece(type_in, color_in);
+
+        // Setting up the players kings position
+        if (type_in == KING) {
+            if (color_in == WHITE) {
+                player1_king_position = location;
+            } else {
+                player2_king_position = location;
+            }
+        }
     }
 
     // Sets up the game with the default chess board state
@@ -133,10 +142,6 @@ namespace Chess_API {
                 add_piece(black_it->first, GAME_PIECE_COLOR::BLACK, piece_locations.at(i));
             }
         }
-
-        // Setting up players king positions
-        player1_king_position = WHITE_DEFAULT_GAME_PIECE_POS.at(KING).at(0);
-        player2_king_position = BLACK_DEFAULT_GAME_PIECE_POS.at(KING).at(0);
     }
 
     // Returns the game_piece pointer for the provided location
@@ -589,6 +594,10 @@ namespace Chess_API {
                 castle_rook = get_location(std::make_pair(start_pos.first, 7));
             }
 
+            if (castle_rook.type != GAME_PIECE_TYPE::ROOK) {
+                return ILLEGAL_MOVE;
+            }
+
             if (castle_rook.moves_made != 0) {
                 return ILLEGAL_MOVE;
             }
@@ -836,7 +845,7 @@ namespace Chess_API {
                     swap_current_player();
 
                     // If this move is legal then the current player is in check
-                    if(is_legal_move(std::make_pair(piece_x, piece_y), king_pos)) {
+                    if(is_legal_move(std::make_pair(piece_x, piece_y), king_pos) == VALID_MOVE) {
                         swap_current_player();
                         return true;
                     // Otherwise move on to the next piece
@@ -911,10 +920,8 @@ namespace Chess_API {
         return false;
     }
 
-    // Determines if the current player is in checkmate
-    // Checkmate is defined as currently being in check but also being unable to make a move to take you out of check
-    bool Game::is_in_checkmate() {
-        // Loop through every position on the board - check if the piece matches the current players color and see if that piece has a valid move - aka doesn't leave the player in check
+    // Determines if the current player has a valid move to make
+    bool Game::current_player_has_valid_move() {
         game_piece player_piece;
         std::vector<std::pair<int, int>> piece_moves;
         std::pair<int, int> move;
@@ -931,14 +938,14 @@ namespace Chess_API {
                         if (player_piece.is_restricted) {
                             end_pos = std::make_pair(i + move.first, j + move.second);
                             if (is_valid_move(start_pos, end_pos) == VALID_MOVE) {
-                                return false;
+                                return true;
                             }
                         } else {
                             for (int l = 1; (((l * move.first) + i < DEFAULT_CHESS_BOARD_SIZE) && ((l * move.first) + i >= 0)) \
                             && (((l * move.second) + j < DEFAULT_CHESS_BOARD_SIZE) && ((l * move.second) + j >= 0)); ++l) {
                                 end_pos = std::make_pair(l * move.first + i, l * move.second + j);
                                 if (is_valid_move(start_pos, end_pos) == VALID_MOVE) {
-                                    return false;
+                                    return true;
                                 }
                             }
                         }
@@ -946,13 +953,27 @@ namespace Chess_API {
                 }
             }
         }
-        return true;
+        return false;
+    }
+
+    // Determines if the current player is in checkmate
+    // Checkmate is defined as currently being in check but also being unable to make a move to take you out of check
+    bool Game::is_in_checkmate() {
+        // Loop through every position on the board - check if the piece matches the current players color and see if that piece has a valid move - aka doesn't leave the player in check
+        if (!is_in_check()) {
+            return false;
+        }
+        return !current_player_has_valid_move();
     }
 
     // Determines if the game is currently in stalemate
+    // Stalemate is defined by the current player being unable to make a valid move but not being in check
     bool Game::is_in_stalemate() {
-        // TODO - Implement
-        return false;
+        // Determine if the current player is in check 
+        if(is_in_check()) {
+            return false;
+        }
+        return !current_player_has_valid_move();
     }
 }
 

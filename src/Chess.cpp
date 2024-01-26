@@ -43,6 +43,7 @@ namespace Chess_API {
         std::shared_ptr<Player> player1(new Human_Player(DEFAULT_HUMAN_NAME, GAME_PIECE_COLOR::COLORMIN));
         std::shared_ptr<Player> player2(new Computer_Player(game, GAME_PIECE_COLOR::COLORMAX, DEFAULT_COMPUTER_DIFFICULTY));
         game = new Game(player1, player2);
+        game->setup_default_board_state();
     }
 
     // Main constructor for taking the players name as well as the difficulty to play on 
@@ -50,6 +51,7 @@ namespace Chess_API {
         std::shared_ptr<Player> player1(new Human_Player(player_name, GAME_PIECE_COLOR::COLORMIN));
         std::shared_ptr<Player> player2(new Computer_Player(game, GAME_PIECE_COLOR::COLORMAX, difficulty));
         game = new Game(player1, player2);
+        game->setup_default_board_state();
     }
 
     // Multiplayer constructor to play with two human players
@@ -57,6 +59,7 @@ namespace Chess_API {
         std::shared_ptr<Player> player1(new Human_Player(player_name1, GAME_PIECE_COLOR::COLORMIN));
         std::shared_ptr<Player> player2(new Human_Player(player_name2, GAME_PIECE_COLOR::COLORMIN));
         game = new Game(player1, player2);
+        game->setup_default_board_state();
     }
 
     // Constructor that can use serialized data to generate the game up to the current point based on past moves
@@ -104,8 +107,19 @@ namespace Chess_API {
         std::pair<int, int> end_pos(end_x, end_y);
 
         // Determining if the move provided is within the confines of chess ruling
-        if (!game->is_valid_move(start_pos, end_pos)) {
-            throw std::runtime_error(INVALID_MOVE_ERROR_MSG);
+        Game::MOVE_ERROR_CODE error_code = game->is_valid_move(start_pos, end_pos);
+        if (error_code == Game::MOVE_ERROR_CODE::BLOCKED_MOVE) {
+            throw std::runtime_error(BLOCKED_MOVE_ERROR_MSG);
+        } else if (error_code == Game::MOVE_ERROR_CODE::CHECK_MOVE) {
+            throw std::runtime_error(CHECK_MOVE_ERROR_MSG);
+        } else if (error_code == Game::MOVE_ERROR_CODE::ILLEGAL_MOVE) {
+            throw std::runtime_error(ILLEGAL_MOVE_ERROR_MSG);
+        } else if (error_code == Game::MOVE_ERROR_CODE::NO_PIECE) {
+            throw std::runtime_error(NO_PIECE_MOVE_ERROR_MSG);
+        } else if (error_code == Game::MOVE_ERROR_CODE::OUT_OF_BOUNDS_MOVE) {
+            throw std::runtime_error(OUT_OF_BOUNDS_MOVE_ERROR_MSG);
+        } else if (error_code == Game::MOVE_ERROR_CODE::WRONG_PLAYER) {
+            throw std::runtime_error(WRONG_COLOR_MOVE_ERROR_MSG);
         }
 
         // Finally - if this is a valid move to be played per the input parameters and is a valid chess move then the move is recorded and played
@@ -116,31 +130,10 @@ namespace Chess_API {
         game->swap_current_player();
     }
 
-    // Determines if the game is currently in a state of check
-    bool Chess::is_in_check() const {
-        if (game->get_current_game_state() == Game::CHECK) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    // Determines if the game is currently in a state of stalemate
-    bool Chess::is_stalemate() const {
-        if (game->get_current_game_state() == Game::STALEMATE) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    // Determines if the game is currently in a check mate state - indicating the game is over
-    bool Chess::is_in_check_mate() const {
-        if (game->get_current_game_state() == Game::CHECKMATE) {
-            return true;
-        } else {
-            return false;
-        }
+    // Returns the games current state - used to determine if the game is in stalemate, checkmate, check or normal play
+    Game::GAME_STATE Chess::get_current_game_state() {
+        game->update_game_state();
+        return game->get_current_game_state();
     }
 
     // Returns the current player

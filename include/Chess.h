@@ -45,14 +45,8 @@ namespace Chess_API {
         */ 
         void play_turn();
 
-        // Determines if the game is currently in a state of check
-        bool is_in_check() const;
-
-        // Determines if the game is currently in a state of stalemate
-        bool is_stalemate() const;
-
-        // Determines if the game is currently in a check mate state - indicating the game is over
-        bool is_in_check_mate() const;
+        // Returns the games current state - used to determine if the game is in stalemate, checkmate, check or normal play
+        Game::GAME_STATE get_current_game_state();
 
         // Returns the current player
         const std::shared_ptr<Player> get_current_player() const;

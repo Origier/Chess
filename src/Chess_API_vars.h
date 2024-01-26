@@ -33,8 +33,13 @@ namespace Chess_API {
     // Error message for typing in the wrong input in the game
     const std::string INVALID_INPUT_ERROR_MSG = "That isn't valid input, type your move in {{char}{num} {char}{num}} format using \"" + VALID_CHARS + "\" as the valid characters and \"" + VALID_NUMS + "\" as the valid numbers";
 
-    // Error message for typing in an invalid move
-    const std::string INVALID_MOVE_ERROR_MSG = "This isn't a valid move - ensure that the move you are typing is feasible for the piece you are using.";
+    // Error messages for each issue that may arise throughout the chess game
+    const std::string BLOCKED_MOVE_ERROR_MSG = "There is a piece blocking your path!";
+    const std::string ILLEGAL_MOVE_ERROR_MSG = "That piece cannot perform that move!";
+    const std::string CHECK_MOVE_ERROR_MSG = "That move would place you in check!";
+    const std::string NO_PIECE_MOVE_ERROR_MSG = "There is no piece at your starting position!";
+    const std::string OUT_OF_BOUNDS_MOVE_ERROR_MSG = "That move would take you out of bounds!";
+    const std::string WRONG_COLOR_MOVE_ERROR_MSG = "That isn't your piece!";
 
     // Different types of game pieces for chess
     enum GAME_PIECE_TYPE {
